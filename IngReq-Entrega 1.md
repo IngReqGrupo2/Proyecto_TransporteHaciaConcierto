@@ -1,10 +1,10 @@
 # Ingeniería de Requisitos — Entrega 1
  
-## Equipo
-- [Eduardo Blanchard]
-- [Felipe Ossandón]
-- [Felipe Rojas Retamales]
-- [Vicente Tapia]
+## Equipo-Responsabilidades
+- Eduardo Blanchard: (03-requisitos.md), (04-historias-usuario.md), (06-atributos-calidad.md).
+- Felipe Ossandón: (01-proceso-as-is.md), (02-rediseno-to-be.md), (05-elicitacion.md).
+- Felipe Rojas Retamales: (01-proceso-as-is.md), (02-rediseno-to-be.md), (05-elicitacion.md).
+- Vicente Tapia: (03-requisitos.md), (04-historias-usuario.md), (06-atributos-calidad.md).
  
 ## Proyecto
 

@@ -11,16 +11,16 @@ Como **cliente/pasajero**, quiero **explorar la cartelera y seleccionar un viaje
 - CA2: Dado que el cliente está en la cartelera, cuando selecciona un viaje, entonces el sistema muestra la información correspondiente al viaje.
 - CA3: Dado que el cliente consulta un viaje, cuando se muestra su información, entonces puede conocer su disponibilidad de cupos sin solicitar una respuesta manual al administrador.
  
-## HU-02 - Confirmar viaje
+## HU-02 — Registrar reserva y pasajero
 
-Como **cliente/pasajero**, quiero **reservar un cupo para el transporte** para **asistir al concierto al que quiero ir**.
+Como **cliente/pasajero**, quiero **registrar mi reserva y mis datos en el viaje seleccionado**, para **asegurar mi cupo sin depender de que el administrador registre manualmente mi información**.
 
-**Actividad TO-BE asociada:** Reservar cupos seleccionados y actualizar cupos
+**Actividad TO-BE asociada:** Registrar reserva y pasajero.
 
 **Criterios de aceptación:**
-- CA1: Dado que haya encontrado un viaje de la cartelera disponible, cuando lo escoja, entonces debo poder acceder a un portal para poder pagarlo.
-- CA2: Dado que haya hecho el pago de un viaje, cuando se haya realizado la transacción, entonces debe quedar registrada en el sistema la reserva.
-- CA3: Dado que haya reservado un viaje, cuando se complete el pago, entonces quiero recibir una notificación con la información de mi reserva.
+- CA1: Dado que el cliente ha seleccionado un viaje con cupos disponibles, cuando inicia el proceso de reserva, entonces el sistema debe permitir ingresar los datos requeridos del pasajero.
+- CA2: Dado que el cliente ha ingresado correctamente sus datos, cuando confirma la reserva, entonces el sistema debe registrar al pasajero y asociarlo al viaje seleccionado.
+- CA3: Dado que la reserva fue registrada correctamente, cuando el cliente consulta su reserva, entonces el sistema debe mostrar que se encuentra asociado al viaje seleccionado.
 
 ## HU-03 — Crear un viaje en el sistema
 

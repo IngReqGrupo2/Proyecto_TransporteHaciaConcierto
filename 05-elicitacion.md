@@ -16,7 +16,7 @@
 ## Técnica 2: Revision documental
 - Participante(s): Documentación operativa de la empresa proporcionada por la administración (Agenda de reservas, Plantilla de traslados, y Redes Sociales).
 - Fecha y modalidad: 21/09/2026
-- Evidencia: [Poner fotos de los documentos].
+- Evidencia: [[Fotos de los documentos]](https://alumnosuvcl-my.sharepoint.com/:f:/g/personal/felipe_rojasret_estudiantes_uv_cl/IgBu8JhuWQC_Q4prY8_9CcyIAW1wY7TiGdmroSzGgvFliPk?e=mAoEHL).
 - Hallazgos principales: 
   - Se confirma la gestión manual de los viajes. El formato tipo agenda agrupa el concierto, la fecha y un listado de máximo 17 pasajeros. Incluye notas sobre el estado de pago y borrones en caso de cancelaciones. Esto demuestra que el administrador esta familiarizado con una interfaz tipo agenda.
   - Se identificaron los campos de datos exactos que el sistema deberá solicitar y almacenar. Para el viaje: nombre del evento, fecha, hora de salida/regreso, conductor, asistente, modelo de vehículo y patente. Para el cliente: nombre, apellidos, RUT y teléfono de contacto.

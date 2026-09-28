@@ -4,7 +4,7 @@
 
 Como **cliente/pasajero**, quiero **explorar la cartelera y seleccionar un viaje disponible**, para **conocer las alternativas de traslado a conciertos sin tener que consultar por mensaje al administrador**.
 
-**Actividad TO-BE asociada:** Explorar cartelera y seleccionar viaje.
+**Actividad TO-BE asociada:** Seleccionar viaje.
 
 **Criterios de aceptación:**
 - CA1: Dado que el administrador ha registrado viajes, cuando el cliente ingresa a la cartelera, entonces el sistema muestra los viajes publicados.
@@ -15,7 +15,7 @@ Como **cliente/pasajero**, quiero **explorar la cartelera y seleccionar un viaje
 
 Como **cliente/pasajero**, quiero **registrar mi reserva y mis datos en el viaje seleccionado**, para **asegurar mi cupo sin depender de que el administrador registre manualmente mi información**.
 
-**Actividad TO-BE asociada:** Registrar reserva y pasajero.
+**Actividad TO-BE asociada:** Seleccionar cupos e ingresar datos de pasajeros.
 
 **Criterios de aceptación:**
 - CA1: Dado que el cliente ha seleccionado un viaje con cupos disponibles, cuando inicia el proceso de reserva, entonces el sistema debe permitir ingresar los datos requeridos del pasajero.
@@ -26,7 +26,7 @@ Como **cliente/pasajero**, quiero **registrar mi reserva y mis datos en el viaje
 
 Como **administrador**, quiero **crear y registrar un viaje en el sistema con sus datos correspondientes**, para **publicarlo en la cartelera y gestionar los viajes sin depender de afiches y registros manuales**.
 
-**Actividad TO-BE asociada:** Crear viaje en el sistema.
+**Actividad TO-BE asociada:** Publicar viaje con su costo, hora de salida y lugar de encuentro.
 
 **Criterios de aceptación:**
 - CA1: Dado que el administrador desea crear un viaje, cuando accede al registro de viajes, entonces el sistema permite ingresar el nombre del evento, fecha, hora de salida y regreso, conductor, asistente, modelo del vehículo y patente.
@@ -37,7 +37,7 @@ Como **administrador**, quiero **crear y registrar un viaje en el sistema con su
 
 Como **asistente de viaje**, quiero **tener disponible la lista de pasajeros confirmados**, para **poder saber qué pasajeros asistieron y quiénes no**.
 
-**Actividad TO-BE asociada:** Visualizar lista digital de pasajeros.
+**Actividad TO-BE asociada:** Recibir lista de pasajeros y pasar lista.
 
 **Criterios de aceptación:**
 - CA1: Dado que el asistente de viaje está en el día del viaje, cuando acceda a la página, el sistema deberá mostrar la lista de pasajeros registrados para el viaje.

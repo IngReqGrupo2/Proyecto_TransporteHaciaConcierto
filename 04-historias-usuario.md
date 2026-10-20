@@ -13,7 +13,7 @@ Como **cliente/pasajero**, quiero **explorar la cartelera y seleccionar un viaje
  
 ## HU-02 — Registrar reserva y pasajero
 
-Como **cliente/pasajero**, quiero **registrar mi reserva y mis datos en el viaje seleccionado**, para **asegurar mi cupo sin depender de que el administrador registre manualmente mi información**.
+Como pasajero, quiero ingresar mis datos para reservar un asiento en el viaje seleccionado, para retener mi cupo temporalmente
 
 **Actividad TO-BE asociada:** Seleccionar cupos e ingresar datos de pasajeros.
 
@@ -21,6 +21,7 @@ Como **cliente/pasajero**, quiero **registrar mi reserva y mis datos en el viaje
 - CA1: Dado que el cliente ha seleccionado un viaje con cupos disponibles, cuando inicia el proceso de reserva, entonces el sistema debe permitir ingresar los datos requeridos del pasajero.
 - CA2: Dado que el cliente ha ingresado correctamente sus datos, cuando confirma la reserva, entonces el sistema debe registrar al pasajero y asociarlo al viaje seleccionado.
 - CA3: Dado que la reserva fue registrada correctamente, cuando el cliente consulta su reserva, entonces el sistema debe mostrar que se encuentra asociado al viaje seleccionado.
+- CA4: Dado que se generó la reserva pendiente, cuando el sistema guarda el registro, entonces se conecta con un servicio de correos externo para enviar automáticamente una notificación al pasajero indicando que su cupo está retenido y los pasos para completar el pago.
 
 ## HU-03 — Crear un viaje en el sistema
 
@@ -43,3 +44,14 @@ Como **asistente de viaje**, quiero **tener disponible la lista de pasajeros con
 - CA1: Dado que el asistente de viaje está en el día del viaje, cuando acceda a la página, el sistema deberá mostrar la lista de pasajeros registrados para el viaje.
 - CA2: Dado que el asistente de viaje tiene la lista, cuando haya confirmado quiénes asistieron, entonces debe poder crearse un registro de las ausencias de la lista.
 - CA3: Dado que el asistente de viaje tiene que volver desde el concierto, cuando acceda a la lista, entonces debe poder confirmar en el sistema que estén todos los pasajeros a bordo.
+
+## HU-05 — Pagar reserva
+
+Como **pasajero**, quiero **pagar mi reserva de forma online utilizando distintos métodos de pago (tarjeta de crédito o débito)**, para **confirmar mi cupo y asegurar mi asiento sin tener que coordinar transferencias manuales**.
+
+**Actividad TO-BE asociada:** Pagar viaje.
+
+**Criterios de aceptación:**
+- CA1: Dado que el cliente ha completado sus datos de reserva, cuando confirma el registro, entonces el sistema lo redirige de forma segura a una pasarela de pago externa.
+- CA2: Dado que el cliente realiza la transacción en la pasarela, cuando el pago es aprobado, entonces el sistema actualiza automáticamente el estado de la reserva a "Pagada" y descuenta definitivamente el cupo del viaje.
+- CA3: Dado que el cliente intenta pagar, cuando la pasarela de pago rechaza la transacción o el usuario cancela la operación, entonces el sistema muestra un mensaje de error y mantiene el cupo retenido solo por un tiempo límite de 8 minutos antes de liberarlo.

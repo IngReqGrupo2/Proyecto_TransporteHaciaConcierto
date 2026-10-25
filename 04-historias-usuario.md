@@ -13,7 +13,7 @@ Como **cliente/pasajero**, quiero **explorar la cartelera y seleccionar un viaje
  
 ## HU-02 — Registrar reserva y pasajero
 
-Como pasajero, quiero ingresar mis datos para reservar un asiento en el viaje seleccionado, para retener mi cupo temporalmente
+Como pasajero, quiero ingresar mis datos para reservar un asiento en el viaje seleccionado.
 
 **Actividad TO-BE asociada:** Seleccionar cupos e ingresar datos de pasajeros.
 
@@ -21,7 +21,7 @@ Como pasajero, quiero ingresar mis datos para reservar un asiento en el viaje se
 - CA1: Dado que el cliente ha seleccionado un viaje con cupos disponibles, cuando inicia el proceso de reserva, entonces el sistema debe permitir ingresar los datos requeridos del pasajero.
 - CA2: Dado que el cliente ha ingresado correctamente sus datos, cuando confirma la reserva, entonces el sistema debe registrar al pasajero y asociarlo al viaje seleccionado.
 - CA3: Dado que la reserva fue registrada correctamente, cuando el cliente consulta su reserva, entonces el sistema debe mostrar que se encuentra asociado al viaje seleccionado.
-- CA4: Dado que se generó la reserva pendiente, cuando el sistema guarda el registro, entonces se conecta con un servicio de correos externo para enviar automáticamente una notificación al pasajero indicando que su cupo está retenido y los pasos para completar el pago.
+- CA4: Dado que se generó la reserva pendiente, cuando el sistema guarda el registro, entonces se conecta con un servicio de correos externo para enviar automáticamente una notificación al pasajero indicando que su cupo fue registrado exitosamente.
 
 ## HU-03 — Crear un viaje en el sistema
 
@@ -36,14 +36,14 @@ Como **administrador**, quiero **crear y registrar un viaje en el sistema con su
 
 ## HU-04 — Visualizar pasajeros
 
-Como **asistente de viaje**, quiero **tener disponible la lista de pasajeros confirmados**, para **poder saber qué pasajeros asistieron y quiénes no**.
+Como **administrador**, quiero **visualizar la lista de pasajeros confirmados de un viaje**, para **saber qué pasajeros asistieron y quiénes no**.
 
-**Actividad TO-BE asociada:** Recibir lista de pasajeros y pasar lista.
+**Actividad TO-BE asociada:** Generar lista digital de pasajeros y pasar lista.
 
 **Criterios de aceptación:**
-- CA1: Dado que el asistente de viaje está en el día del viaje, cuando acceda a la página, el sistema deberá mostrar la lista de pasajeros registrados para el viaje.
-- CA2: Dado que el asistente de viaje tiene la lista, cuando haya confirmado quiénes asistieron, entonces debe poder crearse un registro de las ausencias de la lista.
-- CA3: Dado que el asistente de viaje tiene que volver desde el concierto, cuando acceda a la lista, entonces debe poder confirmar en el sistema que estén todos los pasajeros a bordo.
+- CA1: Dado que es el día del viaje, cuando el administrador accede al viaje y solicita la lista, entonces el sistema muestra los pasajeros con reserva pagada asociados a ese viaje.
+- CA2: Dado que el administrador tiene la lista, cuando registra quiénes asistieron, entonces el sistema guarda la asistencia de cada pasajero y deja un registro de las ausencias.
+- CA3: Dado que el viaje está en el trayecto de regreso desde el concierto, cuando el administrador accede a la lista, entonces puede confirmar en el sistema que todos los pasajeros están a bordo.
 
 ## HU-05 — Pagar reserva
 

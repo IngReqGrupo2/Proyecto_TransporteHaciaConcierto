@@ -7,7 +7,10 @@
 - Vicente Tapia Bustos
  
 ## Proyecto
-[Nombre del proyecto y una descripción breve, 3 a 5 líneas]
+Aplicación web orientada a la gestión y reserva de asientos en servicios de transporte para asistir a conciertos.
+Permite a los pasajeros consultar la cartelera de viajes, revisar disponibilidad y reservar su cupo de forma autónoma.
+También facilita la administración del transporte y el registro de pasajeros, pagos y asientos confirmados.
+El proyecto busca ofrecer una experiencia simple, clara y confiable para organizar el traslado al evento.
  
 ## Responsabilidades individuales
 | Documento | Ítem de rúbrica | Responsable(s) |

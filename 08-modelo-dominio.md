@@ -33,9 +33,8 @@ Archivo fuente: [`./diagramas/modelo-dominio.puml`](./diagramas/modelo-dominio.p
 
 ## Decisiones de modelado
 
-- **Evento y Viaje se mantienen separados:** el evento corresponde al concierto y el viaje al traslado ofrecido hacia él.
+- **Evento y Viaje se modelan de forma separada:** el evento corresponde al concierto y el viaje al traslado ofrecido hacia él.
 - **Administrador se modela como clase:** además de crear viajes, el diagrama registra sus datos propios (RUT, correo electrónico, teléfono y fecha de contratación), por lo que representa información del negocio y no solamente un actor.
 - **RegistroAsistencia se modela como clase independiente:** registra la asistencia de ida y regreso asociada a una reserva.
 - **Conductor y asistente asignados se representan como atributos de Viaje:** el diagrama no los define como clases independientes.
 - **No se emplearon herencia, agregación ni composición:** las siete relaciones mostradas son asociaciones simples.
-- **Multiplicidades por completar:** el diagrama entregado muestra las expresiones `1..` y `0..` sin un límite superior. Deben completarse en el diagrama UML fuente y en la tabla cuando el equipo confirme las cardinalidades; no se asume un valor que no está indicado en la imagen.

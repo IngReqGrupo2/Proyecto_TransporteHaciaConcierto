@@ -26,7 +26,7 @@ Se hizo uso de IA para armar un esqueleto inicial en mermaid y plantUML. Luego l
 - [IngReq-Entrega 1](./IngReq-Entrega%201.md)
  
 ## Índice de documentos
-1. [Criterios de aceptación (Gherkin)](./07-criterios-de-aceptacion.md)
+1. [Criterios de aceptación (Gherkin)](./07-criterios-aceptacion.md)
 2. [Modelo de dominio](./08-modelo-dominio.md)
 3. [Casos de uso](./09-casos-de-uso.md)
 4. [Diagramas de secuencia de sistema](./10-diagramas-secuencia-sistema.md)

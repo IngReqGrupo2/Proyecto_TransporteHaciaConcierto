@@ -1,0 +1,30 @@
+@startuml
+title EST-02 — Ciclo de vida de Pago
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam state {
+  BackgroundColor #EDF3FC
+  BorderColor #42658C
+  FontColor #172C44
+}
+hide empty description
+
+state "Pendiente" as Pendiente
+state "Aprobado" as Aprobado
+state "Rechazado" as Rechazado
+state "Cancelado" as Cancelado
+
+[*] --> Pendiente : iniciarPago\n[reserva pendiente y retención vigente]
+Pendiente --> Aprobado : resultadoPasarela\n[pago aprobado] / notificar aprobación
+Pendiente --> Rechazado : resultadoPasarela\n[pago rechazado] / notificar rechazo
+Pendiente --> Cancelado : cancelacionPago\n[operación cancelada] / notificar cancelación
+
+Aprobado --> [*]
+Rechazado --> [*]
+Cancelado --> [*]
+
+note right of Rechazado
+  La reserva sigue pendiente
+  hasta completar los 8 minutos.
+end note
+@enduml

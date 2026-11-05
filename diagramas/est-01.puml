@@ -1,0 +1,30 @@
+@startuml
+title EST-01 — Ciclo de vida de Reserva
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam state {
+  BackgroundColor #EDF3FC
+  BorderColor #42658C
+  FontColor #172C44
+}
+hide empty description
+
+[*] --> Pendiente : registrarReserva\n[cupo disponible y datos válidos] /\nretener asiento, asociar pasajero y notificar
+
+state "Pendiente de pago" as Pendiente
+state "Pagada" as Pagada
+state "Vencida" as Vencida
+
+Pendiente --> Pagada : pagoAprobado\n[retención vigente] /\nconfirmar reserva y cupo retenido
+Pendiente --> Pendiente : pagoRechazado\n[retención vigente] / informar rechazo
+Pendiente --> Pendiente : pagoCancelado\n[retención vigente] / informar cancelación
+Pendiente --> Vencida : vencerRetencion\n[8 minutos sin pago aprobado] /\nliberar cupo
+
+Pagada --> [*]
+Vencida --> [*]
+
+note right of Pagada
+  No se vuelve a descontar el cupo:
+  ya quedó retenido en DSS-01.
+end note
+@enduml

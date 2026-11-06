@@ -32,6 +32,6 @@ Se hizo uso de IA para armar un esqueleto inicial en mermaid y plantUML. Luego l
 1. [Criterios de aceptación (Gherkin)](./07-criterios-aceptacion.md)
 2. [Modelo de dominio](./08-modelo-dominio.md)
 3. [Casos de uso](./09-casos-de-uso.md)
-4. [Diagramas de secuencia de sistema](./10-diagramas-secuencia.md)
+4. [Diagramas de secuencia](./10-diagramas-secuencia.md)
 5. [Diagramas de estado](./11-diagramas-estado.md)
 6. [Trazabilidad](./12-trazabilidad.md)

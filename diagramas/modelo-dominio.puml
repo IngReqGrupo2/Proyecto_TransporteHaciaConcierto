@@ -1,0 +1,74 @@
+@startuml
+!pragma layout smetana
+title MD-01 — Modelo de dominio: Transporte a Conciertos
+skinparam backgroundColor #FFFFFF
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName DejaVu Sans
+skinparam class {
+  BackgroundColor #F2F7FF
+  BorderColor #294766
+  ArrowColor #294766
+  FontColor #10263C
+}
+hide methods
+class Evento {
+  nombre : Texto
+  fechaEvento : Fecha
+}
+class Viaje {
+  idViaje : Texto
+  fechaViaje : Fecha
+  horaSalida : Hora
+  horaRegreso : Hora
+  lugarEncuentro : Texto
+  costo : Monto
+  capacidad : Número
+  cuposDisponibles : Número
+  estado : EstadoViaje
+  conductorAsignado : Texto
+  asistenteAsignado : Texto
+}
+class Vehiculo {
+  modelo : Texto
+  patente : Texto
+  capacidadPasajeros : Número
+}
+class Administrador{
+  rut : Texto
+  correoElectronico: Texto
+  telefono: Texto
+  fechaContratacion: Fecha
+}
+class Pasajero {
+  rut : Texto
+  nombres : Texto
+  apellidos : Texto
+  telefono : Texto
+  correoElectronico : Texto
+}
+class Reserva {
+  codigoReserva : Texto
+  fechaRegistro : FechaHora
+  vencimientoRetencion : FechaHora
+  estado : EstadoReserva
+}
+class Pago {
+  idPago : Texto
+  monto : Monto
+  medioPago : Texto
+  fechaPago : FechaHora
+  estado : EstadoPago
+}
+class RegistroAsistencia {
+  asistenciaIda : EstadoAsistencia
+  asistenciaRegreso : EstadoAsistencia
+}
+Evento "1" -- "1" Viaje : corresponde a
+Vehiculo "1..*" -- "1..*" Viaje : se utiliza en
+Viaje "1" -- "0..*" Reserva : contiene
+Pasajero "1" -- "0..*" Reserva : realiza
+Reserva "1" -- "0..*" Pago : registra
+Reserva "1" *-- "0..1" RegistroAsistencia : documenta abordaje
+Administrador "1" -- "0..*" Viaje : crea
+@enduml

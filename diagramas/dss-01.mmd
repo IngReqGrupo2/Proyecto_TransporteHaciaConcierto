@@ -1,0 +1,19 @@
+sequenceDiagram
+    autonumber
+    actor Pasajero
+    participant Sistema
+    participant Correo as Servicio de correo (externo)
+
+    Pasajero->>Sistema: Selecciona un asiento del viaje
+    Sistema->>Sistema: Verifica disponibilidad del asiento
+
+    alt Asiento disponible
+        Sistema->>Sistema: Bloquea el asiento temporalmente
+        Sistema-->>Pasajero: Confirma que el asiento quedó retenido
+        Pasajero->>Sistema: Ingresa sus datos y confirma la reserva
+        Sistema->>Sistema: Registra la reserva y asocia al pasajero con el viaje
+        Sistema->>Correo: Solicita notificación de registro exitoso
+        Correo-->>Pasajero: Envía correo de registro exitoso
+    else Asiento bloqueado temporalmente o reservado
+        Sistema-->>Pasajero: Informa que el asiento no está disponible
+    end

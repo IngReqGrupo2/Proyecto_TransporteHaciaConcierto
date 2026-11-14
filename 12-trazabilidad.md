@@ -10,7 +10,7 @@ La matriz de trazabilidad se elaboró tomando como referencia los requisitos de 
 4. **Vinculación con secuencias y estados:** se asigna `DSS-01` a la reserva y `DSS-02` al pago cuando el requisito participa de esos intercambios. `EST-01` se utiliza para transiciones del ciclo de vida de `Reserva` y `EST-02` para las de `Pago`; no se asocian diagramas de estado a clases que no tienen uno documentado.
 5. **Vinculación con clases del dominio:** se emplean exclusivamente los nombres definidos en `08-modelo-dominio.md` (`Evento`, `Vehiculo`, `Administrador`, `Viaje`, `Pasajero`, `Reserva`, `Pago` y `RegistroAsistencia`). Se incluyen las clases que participan conceptualmente en cada requisito, sin añadir nuevas clases.
 6. **Ausencias justificadas:** el símbolo `—` indica que no existe una secuencia o un diagrama de estado aplicable al requisito dentro de los artefactos entregados. Las razones se explican en **Observaciones**, sin inventar diagramas faltantes.
-7. **Coherencia documental:** se priorizan las correspondencias que constan en los documentos de origen; las discrepancias entre ellos, como la referencia a `CU-05` en `DSS-02`, la responsabilidad de la nómina y la contabilización de cupos, se registran expresamente en lugar de ocultarlas.
+7. **Coherencia documental:** se priorizan las correspondencias que constan en los documentos de origen; las discrepancias entre ellos, como la responsabilidad de la nómina y la contabilización de cupos, se registran expresamente en lugar de ocultarlas.
 
 ## Matriz de trazabilidad
 

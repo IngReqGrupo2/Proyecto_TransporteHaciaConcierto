@@ -45,6 +45,11 @@ Característica: Registrar reserva y retener cupo
     Cuando un pasajero intente seleccionarlos,
     Entonces el sistema impedirá el proceso
     Y le mostrará un mensaje señalando que no hay cupos disponibles.
+
+  Escenario: Consultar estado de la reserva registrada
+    Dado que el pasajero ha registrado exitosamente una reserva,
+    Cuando consulta los datos de su reserva,
+    Entonces el sistema muestra que se encuentra asociado al viaje seleccionado en estado pendiente de pago.
 ```
    
 ## HU-03 — Crear un viaje en el sistema
@@ -90,6 +95,11 @@ Característica: Consultar nomina de pasajeros
     Dado que el administrador se encuentra visualizando la lista digital de pasajeros el día del viaje,
     Cuando marca a un pasajero como presente,
     Entonces el sistema guarda el registro de asistencia correspondiente a ese pasajero.
+
+  Escenario: Confirmar abordaje en el trayecto de regreso
+    Dado que el viaje está en el trayecto de regreso desde el concierto,
+    Cuando el administrador accede a la lista digital de pasajeros,
+    Entonces puede confirmar en el sistema que todos los pasajeros están a bordo.
 ```
 ## HU-05 — Pagar reserva
 
@@ -108,11 +118,11 @@ Característica: Procesar pagos y actualizar reservas
     Dado que el pasajero realiza la transacción en la pasarela, 
     Cuando el pago es aprobado,
     Entonces el sistema actualiza automáticamente el estado de la reserva a "Pagada"
-    Y descuenta definitivamente el cupo del viaje.
+    Y confirma definitivamente el cupo retenido del viaje sin volver a descontarlo.
 
-  Escenario: Pago fallido
+  Escenario: Pago fallido o cancelado
     Dado que el cliente se encuentre en la pasarela de pagos,
     Cuando la pasarela rechaza la transacción o el usuario cancela la operación,
-    Entonces el sistema mantiene el cupo retenido solo por el tiempo límite restante
-    Y se envía un mensaje al pasajero señalando que la reserva no se ha realizado.
+    Entonces el sistema informa que el pago no fue completado
+    Y mantiene el cupo retenido solo por el tiempo límite de 8 minutos antes de liberarlo.
 ```

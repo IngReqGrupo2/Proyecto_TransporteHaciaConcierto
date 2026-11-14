@@ -13,11 +13,11 @@ sequenceDiagram
     alt Pago aprobado
         Pasarela-->>Sistema: Notifica pago aprobado
         Sistema->>Sistema: Actualiza el estado de la reserva a Pagada
-        Sistema->>Sistema: Descuenta definitivamente el cupo del viaje
+        Sistema->>Sistema: Confirma definitivamente el cupo retenido del viaje
         Sistema-->>Pasajero: Informa que el pago fue exitoso
     else Pago rechazado o cancelado por el pasajero
         Pasarela-->>Sistema: Notifica rechazo o cancelación
-        Sistema->>Sistema: Mantiene el cupo retenido por un tiempo límite
-        Sistema-->>Pasajero: Informa que la reserva no se ha realizado
+        Sistema->>Sistema: Mantiene el cupo retenido por un tiempo límite (8 minutos)
+        Sistema-->>Pasajero: Informa que el pago no fue completado
         Sistema->>Sistema: Libera el cupo al vencer el tiempo límite
     end

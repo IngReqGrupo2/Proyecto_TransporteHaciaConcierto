@@ -16,8 +16,8 @@ Archivo fuente: [`./diagramas/casos-de-uso.drawio`](./diagramas/casos-de-uso.dra
 ## Casos de uso y su origen
 | ID | Caso de uso (objetivo del actor) | Actor principal | Historia de origen |
 |----|-----------------------------------|-----------------|---------------------|
-| CU-01 | Consultar cartelera de viajes | Pasajero | [HU-01](./04-historias-usuario.md#hu-01) |
-| CU-02 | Reservar asiento | Pasajero | [HU-02](./04-historias-usuario.md#hu-02) |
-| CU-03 | Pagar reserva | Pasajero | [HU-05](./04-historias-usuario.md#hu-05) |
-| CU-04 | Crear viaje | Administrador | [HU-03](./04-historias-usuario.md#hu-03) |
-| CU-05 | Ver listado de pasajeros de un viaje | Administrador | [HU-04](./04-historias-usuario.md#hu-04) |
+| <a id="cu-01"></a>CU-01 | Consultar cartelera de viajes | Pasajero | [HU-01](./04-historias-usuario.md#hu-01-consultar-la-cartelera-de-viajes) |
+| <a id="cu-02"></a>CU-02 | Reservar asiento | Pasajero | [HU-02](./04-historias-usuario.md#hu-02-registrar-reserva-y-pasajero) |
+| <a id="cu-03"></a>CU-03 | Pagar reserva | Pasajero | [HU-05](./04-historias-usuario.md#hu-05-pagar-reserva) |
+| <a id="cu-04"></a>CU-04 | Crear viaje | Administrador | [HU-03](./04-historias-usuario.md#hu-03-crear-un-viaje-en-el-sistema) |
+| <a id="cu-05"></a>CU-05 | Ver listado de pasajeros de un viaje | Administrador | [HU-04](./04-historias-usuario.md#hu-04-visualizar-pasajeros) |

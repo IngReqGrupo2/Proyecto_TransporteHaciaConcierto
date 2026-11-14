@@ -24,17 +24,17 @@ Archivo fuente: [`./diagramas/modelo-dominio.puml`](./diagramas/modelo-dominio.p
 | Asociación | Clases | Multiplicidades | Justificación |
 |---|---|---|---|
 | **corresponde a** | Evento – Viaje | `1` – `1` | El viaje corresponde al evento al que se transportará a los pasajeros. |
-| **se utiliza en** | Vehiculo – Viaje | `1..` – `1..` (incompletas en el diagrama) | El viaje utiliza un vehículo para realizar el traslado. |
+| **se utiliza en** | Vehiculo – Viaje | Cada viaje: `1..*` vehículos; cada vehículo: `1..*` viajes | El viaje utiliza un vehículo para realizar el traslado. |
 | **crea** | Administrador – Viaje | Cada viaje: `1` administrador; cada administrador: `0..*` viajes | El administrador crea y registra viajes para publicarlos. |
-| **contiene** | Viaje – Reserva | Cada reserva: `1` viaje; cada viaje: `0..` reservas (incompleta en el diagrama) | Un viaje contiene las reservas efectuadas por los pasajeros. |
-| **realiza** | Pasajero – Reserva | Cada reserva: `1` pasajero; cada pasajero: `0..` reservas (incompleta en el diagrama) | Cada reserva está asociada al pasajero que la realiza. |
-| **registra** | Reserva – Pago | Cada pago: `1` reserva; cada reserva: `0..` pagos (incompleta en el diagrama) | Una reserva puede registrar un pago, y este queda asociado a dicha reserva. |
+| **contiene** | Viaje – Reserva | Cada reserva: `1` viaje; cada viaje: `0..*` reservas | Un viaje contiene las reservas efectuadas por los pasajeros. |
+| **realiza** | Pasajero – Reserva | Cada reserva: `1` pasajero; cada pasajero: `0..*` reservas | Cada reserva está asociada al pasajero que la realiza. |
+| **registra** | Reserva – Pago | Cada pago: `1` reserva; cada reserva: `0..*` pagos | Una reserva puede registrar un pago, y este queda asociado a dicha reserva. |
 | **documenta abordaje** | Reserva – RegistroAsistencia | Cada registro de asistencia: `1` reserva; cada reserva: `0..1` registros de asistencia | Se documenta la asistencia de ida y regreso correspondiente a la reserva del pasajero. |
 
 ## Decisiones de modelado
 
 - **Evento y Viaje se modelan de forma separada:** el evento corresponde al concierto y el viaje al traslado ofrecido hacia él.
 - **Administrador se modela como clase:** además de crear viajes, el diagrama registra sus datos propios (RUT, correo electrónico, teléfono y fecha de contratación), por lo que representa información del negocio y no solamente un actor.
-- **RegistroAsistencia se modela como clase independiente:** registra la asistencia de ida y regreso asociada a una reserva.
+- **RegistroAsistencia se modela como clase independiente y composición:** registra la asistencia de ida y regreso asociada a una reserva; se modela como una composición fuerte (`*--`) desde `Reserva`, ya que el registro de abordaje no existe de manera autónoma sin una reserva asociada.
 - **Conductor y asistente asignados se representan como atributos de Viaje:** el diagrama no los define como clases independientes.
-- **No se emplearon herencia, agregación ni composición:** las siete relaciones mostradas son asociaciones simples.
+- **Relaciones del modelo:** las relaciones son asociaciones simples binarias, con excepción de la composición entre `Reserva` y `RegistroAsistencia`.

@@ -6,6 +6,7 @@ import express, {
 } from 'express';
 import path from 'node:path';
 import type { BaseDeDatos } from './db/conexion';
+import { crearRutasAdminViajes } from './rutas/admin-viajes';
 import { crearRutasCartelera } from './rutas/cartelera';
 import { formatearMonto } from './util/formato';
 
@@ -18,7 +19,13 @@ export function crearApp(db: BaseDeDatos): Express {
   app.locals.formatearMonto = formatearMonto;
 
   app.use(express.static(path.join(process.cwd(), 'public')));
+  app.use(express.urlencoded({ extended: false }));
+  app.use((_req, res, next) => {
+    res.locals.rol = 'Pasajero';
+    next();
+  });
   app.use(crearRutasCartelera(db));
+  app.use(crearRutasAdminViajes(db));
 
   app.use((_req, res) => {
     res.status(404).render('error', {

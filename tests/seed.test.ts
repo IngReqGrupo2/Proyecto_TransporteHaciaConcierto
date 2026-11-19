@@ -14,6 +14,9 @@ describe('Datos de ejemplo', () => {
     const viajesPrimera = db
       .prepare('SELECT COUNT(*) AS total FROM viaje')
       .get() as { total: number };
+    const vehiculosPrimera = db
+      .prepare('SELECT COUNT(*) AS total FROM vehiculo')
+      .get() as { total: number };
 
     cargarDatosEjemplo(db);
     const eventosSegunda = db
@@ -22,11 +25,28 @@ describe('Datos de ejemplo', () => {
     const viajesSegunda = db
       .prepare('SELECT COUNT(*) AS total FROM viaje')
       .get() as { total: number };
+    const vehiculosSegunda = db
+      .prepare('SELECT COUNT(*) AS total FROM vehiculo')
+      .get() as { total: number };
 
     expect(eventosPrimera.total).toBe(3);
     expect(viajesPrimera.total).toBe(3);
+    expect(vehiculosPrimera.total).toBe(2);
     expect(eventosSegunda.total).toBe(eventosPrimera.total);
     expect(viajesSegunda.total).toBe(viajesPrimera.total);
+    expect(vehiculosSegunda.total).toBe(vehiculosPrimera.total);
+
+    const vehiculoV001 = db
+      .prepare(`
+        SELECT ve.patente AS patente, v.conductor_asignado AS conductor
+        FROM viaje v
+        INNER JOIN vehiculo ve ON ve.id_vehiculo = v.id_vehiculo
+        WHERE v.id_viaje = 'V-001'
+      `)
+      .get() as { patente: string; conductor: string } | undefined;
+
+    expect(vehiculoV001?.patente).toBe('LKPW42');
+    expect(vehiculoV001?.conductor).toBe('Carlos Muñoz');
 
     const disponibles = new ViajeRepositorio(db).listarDisponibles();
     expect(disponibles).toHaveLength(1);

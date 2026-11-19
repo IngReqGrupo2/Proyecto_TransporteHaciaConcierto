@@ -1,0 +1,79 @@
+<%- include('../parciales/encabezado', { titulo: titulo }) %>
+
+<p><a class="volver" href="/cartelera">← Volver a la cartelera</a></p>
+
+<h1>Crear viaje</h1>
+<p class="intro">Registra el evento, los datos del traslado y el vehículo. El viaje queda publicado en la cartelera con los cupos disponibles del vehículo (máximo 17 pasajeros).</p>
+
+<% if (error) { %>
+  <p class="mensaje-error" role="alert"><%= error %></p>
+<% } %>
+
+<%
+  const mensajeDe = (campo) => errores[campo] || null;
+  const atributosDe = (campo) =>
+    errores[campo] ? ' class="campo-invalido" aria-invalid="true"' : '';
+%>
+
+<form class="formulario-viaje" method="post" action="/admin/viajes">
+  <fieldset>
+    <legend>Evento</legend>
+    <label>Nombre del evento
+      <input type="text" name="eventoNombre" value="<%= valores.eventoNombre %>" required<%- atributosDe('eventoNombre') %>>
+      <% if (mensajeDe('eventoNombre')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('eventoNombre') %></span><% } %>
+    </label>
+    <label>Fecha del evento
+      <input type="date" name="eventoFecha" value="<%= valores.eventoFecha %>" required<%- atributosDe('eventoFecha') %>>
+      <% if (mensajeDe('eventoFecha')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('eventoFecha') %></span><% } %>
+    </label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Traslado</legend>
+    <label>Fecha del viaje
+      <input type="date" name="fechaViaje" value="<%= valores.fechaViaje %>" required<%- atributosDe('fechaViaje') %>>
+      <% if (mensajeDe('fechaViaje')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('fechaViaje') %></span><% } %>
+    </label>
+    <label>Hora de salida
+      <input type="time" name="horaSalida" value="<%= valores.horaSalida %>" required<%- atributosDe('horaSalida') %>>
+      <% if (mensajeDe('horaSalida')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('horaSalida') %></span><% } %>
+    </label>
+    <label>Hora de regreso
+      <input type="time" name="horaRegreso" value="<%= valores.horaRegreso %>" required<%- atributosDe('horaRegreso') %>>
+      <% if (mensajeDe('horaRegreso')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('horaRegreso') %></span><% } %>
+    </label>
+    <label>Lugar de encuentro
+      <input type="text" name="lugarEncuentro" value="<%= valores.lugarEncuentro %>" required<%- atributosDe('lugarEncuentro') %>>
+      <% if (mensajeDe('lugarEncuentro')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('lugarEncuentro') %></span><% } %>
+    </label>
+    <label>Costo
+      <input type="number" name="costo" value="<%= valores.costo %>" min="1" step="1" required<%- atributosDe('costo') %>>
+      <% if (mensajeDe('costo')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('costo') %></span><% } %>
+    </label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Personal y vehículo</legend>
+    <label>Conductor
+      <input type="text" name="conductor" value="<%= valores.conductor %>" required<%- atributosDe('conductor') %>>
+      <% if (mensajeDe('conductor')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('conductor') %></span><% } %>
+    </label>
+    <label>Asistente
+      <input type="text" name="asistente" value="<%= valores.asistente %>" required<%- atributosDe('asistente') %>>
+      <% if (mensajeDe('asistente')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('asistente') %></span><% } %>
+    </label>
+    <label>Modelo del vehículo
+      <input type="text" name="modeloVehiculo" value="<%= valores.modeloVehiculo %>" required<%- atributosDe('modeloVehiculo') %>>
+      <% if (mensajeDe('modeloVehiculo')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('modeloVehiculo') %></span><% } %>
+    </label>
+    <label>Patente
+      <input type="text" name="patente" value="<%= valores.patente %>" placeholder="AABB11" maxlength="6" required<%- atributosDe('patente') %>>
+      <% if (mensajeDe('patente')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('patente') %></span><% } %>
+      <span class="ayuda">Formato chileno actual: cuatro letras y dos dígitos (por ejemplo, LKPW42).</span>
+    </label>
+  </fieldset>
+
+  <button class="boton" type="submit">Publicar viaje</button>
+</form>
+
+<%- include('../parciales/pie') %>

@@ -69,6 +69,39 @@ Característica: Crear y publicar viajes
     Dado que el administrador no ingresa alguno de los campos requeridos en la creación de viajes,
     Cuando intente publicarlo,
     Entonces el sistema lo impedirá 
+    Y cada campo faltante se marcará como inválido
+    Y el viaje no se creará.
+
+  Esquema del escenario: Fechas inválidas en la creación del viaje
+    Dado que el administrador ingresa como fecha del evento o del viaje <fecha>,
+    Cuando intente publicar el viaje,
+    Entonces el sistema lo impedirá
+    Y mostrará "La fecha del evento está fuera de rango." o "La fecha del viaje está fuera de rango." junto al campo correspondiente
+    Y el viaje no se creará.
+
+    Ejemplos:
+      | fecha                                  |
+      | 29 de febrero de un año no bisiesto    |
+      | una fecha anterior a hoy               |
+      | 1 de enero del año actual más 101 años |
+
+  Esquema del escenario: Nombre del conductor o del asistente inválido
+    Dado que el administrador ingresa como nombre del <campo> el valor "<valor>",
+    Cuando intente publicar el viaje,
+    Entonces el sistema lo impedirá
+    Y mostrará "<mensaje>" junto al campo <campo>
+    Y el viaje no se creará.
+
+    Ejemplos:
+      | campo     | valor | mensaje                                                   |
+      | conductor | 12345 | El nombre del conductor debe contener al menos una letra. |
+      | asistente | 98765 | El nombre del asistente debe contener al menos una letra. |
+
+  Escenario: Fecha del viaje posterior a la fecha del evento
+    Dado que el administrador ingresa una fecha del viaje posterior a la fecha del evento,
+    Cuando intente publicar el viaje,
+    Entonces el sistema lo impedirá
+    Y mostrará "La fecha del viaje no puede ser posterior a la fecha del evento." junto al campo de la fecha del viaje
     Y el viaje no se creará.
 
 ```

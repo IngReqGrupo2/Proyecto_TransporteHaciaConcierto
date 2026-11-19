@@ -3,7 +3,7 @@
 ## Proyecto
 - Nombre: Transporte hacia Concierto
 - Repositorio de documentación: esta carpeta
-- Última auditoría: 2026-11-14 — resultado: con supuestos
+- Última auditoría: 2026-11-16 — resultado: sin bloqueantes, con supuestos
 
 ## Mapa de artefactos (rutas detectadas)
 | Artefacto | Ruta(s) | Estado |
@@ -25,6 +25,16 @@
   - El asistente de viaje no forma parte del sistema: el administrador concentra la gestión de nómina y registro de abordaje (RP-08 no se implementa como rol aparte).
   - El servicio de correo y la pasarela de pago se simulan como sistemas externos (interfaz + implementación simulada).
   - Se corrigió `12-trazabilidad.md`: se eliminó la referencia obsoleta a `CU-05` en `DSS-02`.
+- 2026-11-16, confirmado por el estudiante (auditoría de seguimiento):
+  - «Asiento» y «cupo» son conceptos diferentes pero relacionados. El modelo de dominio no tiene entidad `Asiento`; se mantiene así por ahora y se resolverá al implementar HU-02.
+  - Se mantienen los supuestos del 2026-11-14 sobre las actividades de HU-04 y HU-05.
+  - El asistente de viaje sigue sin ser un rol del sistema.
+  - La multiplicidad `Evento–Viaje` se mantiene como `1–1`.
+  - `Viaje` se crea directamente en estado «Publicado» (HU-03).
+  - La capacidad máxima de un viaje es 17 pasajeros, porque los vehículos disponibles tienen esa capacidad.
+  - El repositorio ya tiene HU-01 implementada; la documentación del curso no cambió desde el 2026-11-14.
+- 2026-11-17, a pedido del estudiante (HU-03):
+  - La patente del vehículo usa solo el formato chileno actual: cuatro letras y dos dígitos (`AABB11`); se rechaza el formato antiguo (`AB1234`).
 
 ## Stack (se define una sola vez)
 - Lenguaje y framework: TypeScript + Express + EJS
@@ -39,7 +49,7 @@
 |----------|--------|--------------------|-------|----------------|
 | HU-01 | generada, pendiente de validación | `hu-01-consultar-cartelera` | 2026-11-14 | Consultar cartelera (CU-01). Implementada; 15 pruebas pasan. Ficha `.cin324/historias/HU-01.md` |
 | HU-02 | pendiente | — | — | Registrar reserva y pasajero (CU-02, DSS-01, EST-01) |
-| HU-03 | pendiente | — | — | Crear viaje (CU-04) |
+| HU-03 | generada; ajuste de fechas implementado, pendiente de validación | `hu-03-crear-viaje`, `ajuste-hu-03-fechas` | 2026-11-18 | Crear viaje (CU-04). Patente solo formato actual `AABB11`. Ajuste OBS-1: fechas reales del calendario, no anteriores a hoy y máximo 31/12/(año+100). 43 pruebas pasan. Ficha `.cin324/historias/HU-03.md` |
 | HU-04 | pendiente | — | — | Visualizar pasajeros (CU-05) |
 | HU-05 | pendiente | — | — | Pagar reserva (CU-03, DSS-02, EST-01/02) |
 
@@ -51,4 +61,4 @@
 ## Cambios posteriores
 | Cambio | Historia afectada | Motivo | Fecha |
 |--------|-------------------|--------|-------|
-| — | — | — | — |
+| `ajuste-hu-03-fechas` | HU-03 | OBS-1 de `VAL-HU-03-1.md`: rechazar fechas inexistentes, pasadas o posteriores a 100 años | 2026-11-18 |

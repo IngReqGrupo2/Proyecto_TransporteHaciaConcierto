@@ -6,9 +6,11 @@ import express, {
 } from 'express';
 import path from 'node:path';
 import type { BaseDeDatos } from './db/conexion';
+import { ServicioCorreoSimulado } from './integraciones/correo';
 import { crearRutasAdminViajes } from './rutas/admin-viajes';
 import { crearRutasCartelera } from './rutas/cartelera';
-import { formatearMonto } from './util/formato';
+import { crearRutasReservas } from './rutas/reservas';
+import { formatearFechaHora, formatearMonto } from './util/formato';
 
 export function crearApp(db: BaseDeDatos): Express {
   const app = express();
@@ -17,6 +19,7 @@ export function crearApp(db: BaseDeDatos): Express {
   app.set('view engine', 'ejs');
   app.set('views', path.join(process.cwd(), 'src', 'vistas'));
   app.locals.formatearMonto = formatearMonto;
+  app.locals.formatearFechaHora = formatearFechaHora;
 
   app.use(express.static(path.join(process.cwd(), 'public')));
   app.use(express.urlencoded({ extended: false }));
@@ -25,6 +28,7 @@ export function crearApp(db: BaseDeDatos): Express {
     next();
   });
   app.use(crearRutasCartelera(db));
+  app.use(crearRutasReservas(db, new ServicioCorreoSimulado(db)));
   app.use(crearRutasAdminViajes(db));
 
   app.use((_req, res) => {

@@ -350,6 +350,14 @@ export class ViajeRepositorio {
           limpios.asistente,
         );
 
+      const insertarAsiento = this.db.prepare(`
+        INSERT INTO asiento (id_viaje, numero)
+        VALUES (?, ?)
+      `);
+      for (let numero = 1; numero <= vehiculo.capacidadPasajeros; numero += 1) {
+        insertarAsiento.run(idViaje, numero);
+      }
+
       return idViaje;
     });
 

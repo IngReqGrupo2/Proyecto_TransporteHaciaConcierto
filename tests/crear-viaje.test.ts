@@ -60,6 +60,27 @@ describe('ViajeRepositorio · crearViaje', () => {
     expect(contar(db, 'viaje')).toBe(1);
   });
 
+  it('genera los asientos del viaje según la capacidad del vehículo', () => {
+    db = crearBaseDePrueba();
+
+    const viaje = new ViajeRepositorio(db).crearViaje(
+      datos({ patente: 'BJYR68' }),
+    );
+
+    const asientos = db
+      .prepare(`
+        SELECT numero
+        FROM asiento
+        WHERE id_viaje = ?
+        ORDER BY numero ASC
+      `)
+      .all(viaje.idViaje) as Array<{ numero: number }>;
+
+    expect(asientos.map((asiento) => asiento.numero)).toEqual(
+      Array.from({ length: viaje.capacidad }, (_, indice) => indice + 1),
+    );
+  });
+
   it('no deja registros parciales al fallar la validación', () => {
     db = crearBaseDePrueba();
     const repositorio = new ViajeRepositorio(db);

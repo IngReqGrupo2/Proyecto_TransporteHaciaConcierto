@@ -29,6 +29,9 @@ class Viaje {
   conductorAsignado : Texto
   asistenteAsignado : Texto
 }
+class Asiento {
+  numero : Número
+}
 class Vehiculo {
   modelo : Texto
   patente : Texto
@@ -65,10 +68,13 @@ class RegistroAsistencia {
   asistenciaRegreso : EstadoAsistencia
 }
 Evento "1" -- "1" Viaje : corresponde a
-Vehiculo "1..*" -- "1..*" Viaje : se utiliza en
-Viaje "1" -- "0..*" Reserva : contiene
+Vehiculo "1" -- "0..*" Viaje : se utiliza en
+Viaje "1" *-- "1..*" Asiento : contiene
+Viaje "1" -- "0..*" Reserva : recibe
+Asiento "1" -- "0..*" Reserva : se asigna a
 Pasajero "1" -- "0..*" Reserva : realiza
 Reserva "1" -- "0..*" Pago : registra
 Reserva "1" *-- "0..1" RegistroAsistencia : documenta abordaje
 Administrador "1" -- "0..*" Viaje : crea
 @enduml
+

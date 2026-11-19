@@ -8,9 +8,17 @@ interface EventoEjemplo {
   fechaEvento: string;
 }
 
+interface VehiculoEjemplo {
+  idVehiculo: number;
+  modelo: string;
+  patente: string;
+  capacidadPasajeros: number;
+}
+
 interface ViajeEjemplo {
   idViaje: string;
   idEvento: number;
+  idVehiculo: number;
   fechaViaje: string;
   horaSalida: string;
   horaRegreso: string;
@@ -19,6 +27,8 @@ interface ViajeEjemplo {
   capacidad: number;
   cuposDisponibles: number;
   estado: string;
+  conductorAsignado: string;
+  asistenteAsignado: string;
 }
 
 const EVENTOS: EventoEjemplo[] = [
@@ -39,10 +49,26 @@ const EVENTOS: EventoEjemplo[] = [
   },
 ];
 
+const VEHICULOS: VehiculoEjemplo[] = [
+  {
+    idVehiculo: 1,
+    modelo: 'Mercedes-Benz Sprinter',
+    patente: 'LKPW42',
+    capacidadPasajeros: 17,
+  },
+  {
+    idVehiculo: 2,
+    modelo: 'Hyundai H1',
+    patente: 'BJYR68',
+    capacidadPasajeros: 10,
+  },
+];
+
 const VIAJES: ViajeEjemplo[] = [
   {
     idViaje: 'V-001',
     idEvento: 1,
+    idVehiculo: 1,
     fechaViaje: '2027-01-15',
     horaSalida: '18:30',
     horaRegreso: '02:00',
@@ -51,22 +77,28 @@ const VIAJES: ViajeEjemplo[] = [
     capacidad: 17,
     cuposDisponibles: 12,
     estado: 'Publicado',
+    conductorAsignado: 'Carlos Muñoz',
+    asistenteAsignado: 'Ana Torres',
   },
   {
     idViaje: 'V-002',
     idEvento: 2,
+    idVehiculo: 2,
     fechaViaje: '2027-02-20',
     horaSalida: '17:00',
     horaRegreso: '01:30',
     lugarEncuentro: 'Terminal de Buses',
     costo: 18000,
-    capacidad: 17,
+    capacidad: 10,
     cuposDisponibles: 0,
     estado: 'Publicado',
+    conductorAsignado: 'Luis Pérez',
+    asistenteAsignado: 'María Soto',
   },
   {
     idViaje: 'V-003',
     idEvento: 3,
+    idVehiculo: 1,
     fechaViaje: '2027-03-05',
     horaSalida: '19:00',
     horaRegreso: '23:30',
@@ -75,6 +107,8 @@ const VIAJES: ViajeEjemplo[] = [
     capacidad: 17,
     cuposDisponibles: 17,
     estado: 'Borrador',
+    conductorAsignado: 'Carlos Muñoz',
+    asistenteAsignado: 'Ana Torres',
   },
 ];
 
@@ -86,14 +120,24 @@ export function cargarDatosEjemplo(db: BaseDeDatos): void {
       nombre = excluded.nombre,
       fecha_evento = excluded.fecha_evento
   `);
+  const guardarVehiculo = db.prepare(`
+    INSERT INTO vehiculo (id_vehiculo, modelo, patente, capacidad_pasajeros)
+    VALUES (?, ?, ?, ?)
+    ON CONFLICT(id_vehiculo) DO UPDATE SET
+      modelo = excluded.modelo,
+      patente = excluded.patente,
+      capacidad_pasajeros = excluded.capacidad_pasajeros
+  `);
   const guardarViaje = db.prepare(`
     INSERT INTO viaje (
-      id_viaje, id_evento, fecha_viaje, hora_salida, hora_regreso,
-      lugar_encuentro, costo, capacidad, cupos_disponibles, estado
+      id_viaje, id_evento, id_vehiculo, fecha_viaje, hora_salida, hora_regreso,
+      lugar_encuentro, costo, capacidad, cupos_disponibles, estado,
+      conductor_asignado, asistente_asignado
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id_viaje) DO UPDATE SET
       id_evento = excluded.id_evento,
+      id_vehiculo = excluded.id_vehiculo,
       fecha_viaje = excluded.fecha_viaje,
       hora_salida = excluded.hora_salida,
       hora_regreso = excluded.hora_regreso,
@@ -101,17 +145,28 @@ export function cargarDatosEjemplo(db: BaseDeDatos): void {
       costo = excluded.costo,
       capacidad = excluded.capacidad,
       cupos_disponibles = excluded.cupos_disponibles,
-      estado = excluded.estado
+      estado = excluded.estado,
+      conductor_asignado = excluded.conductor_asignado,
+      asistente_asignado = excluded.asistente_asignado
   `);
 
   db.transaction(() => {
     for (const evento of EVENTOS) {
       guardarEvento.run(evento.idEvento, evento.nombre, evento.fechaEvento);
     }
+    for (const vehiculo of VEHICULOS) {
+      guardarVehiculo.run(
+        vehiculo.idVehiculo,
+        vehiculo.modelo,
+        vehiculo.patente,
+        vehiculo.capacidadPasajeros,
+      );
+    }
     for (const viaje of VIAJES) {
       guardarViaje.run(
         viaje.idViaje,
         viaje.idEvento,
+        viaje.idVehiculo,
         viaje.fechaViaje,
         viaje.horaSalida,
         viaje.horaRegreso,
@@ -120,6 +175,8 @@ export function cargarDatosEjemplo(db: BaseDeDatos): void {
         viaje.capacidad,
         viaje.cuposDisponibles,
         viaje.estado,
+        viaje.conductorAsignado,
+        viaje.asistenteAsignado,
       );
     }
   })();

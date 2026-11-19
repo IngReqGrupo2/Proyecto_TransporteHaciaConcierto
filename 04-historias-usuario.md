@@ -33,6 +33,10 @@ Como **administrador**, quiero **crear y registrar un viaje en el sistema con su
 - CA1: Dado que el administrador desea crear un viaje, cuando accede al registro de viajes, entonces el sistema permite ingresar el nombre del evento, fecha, hora de salida y regreso, conductor, asistente, modelo del vehículo y patente.
 - CA2: Dado que el administrador completa los datos requeridos del viaje, cuando confirma su creación, entonces el sistema registra el viaje.
 - CA3: Dado que el viaje fue registrado correctamente, cuando se publica, entonces el sistema lo incorpora a la cartelera para que pueda ser consultado por los clientes.
+- CA4: Dado que el administrador ingresa la fecha del evento o del viaje, cuando confirma la creación, entonces el sistema rechaza la fecha si no existe en el calendario, si es anterior a la fecha actual o si es posterior al 31 de diciembre del año actual más 100 años.
+- CA5: Dado que el administrador ingresa el nombre del conductor o del asistente, cuando confirma la creación, entonces el sistema rechaza el nombre si no contiene al menos una letra.
+- CA6: Dado que el administrador ingresa la fecha del viaje, cuando confirma la creación, entonces el sistema rechaza la fecha si es posterior a la fecha del evento; se permite el mismo día.
+- CA7: Dado que el sistema detecta datos inválidos, cuando muestra los errores de creación, entonces indica el mensaje junto al campo afectado y lo marca como inválido, además del mensaje general.
 
 ## HU-04 — Visualizar pasajeros
 

@@ -19,6 +19,9 @@
     <dd><%= formatearMonto(viaje.costo) %></dd>
   </dl>
   <p class="cupos">Cupos disponibles: <%= viaje.cuposDisponibles %></p>
+  <% if (viaje.cuposDisponibles > 0) { %>
+    <a class="boton" href="/cartelera/<%= viaje.idViaje %>/reservar">Reservar asiento</a>
+  <% } %>
 </article>
 
 <%- include('parciales/pie') %>

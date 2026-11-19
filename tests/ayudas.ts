@@ -61,6 +61,21 @@ export function crearViaje(overrides: Partial<Viaje> = {}): Viaje {
   };
 }
 
+export function insertarAsientos(
+  db: BaseDeDatos,
+  idViaje: string,
+  capacidad: number,
+): void {
+  const insertar = db.prepare(`
+    INSERT OR IGNORE INTO asiento (id_viaje, numero)
+    VALUES (?, ?)
+  `);
+
+  for (let numero = 1; numero <= capacidad; numero += 1) {
+    insertar.run(idViaje, numero);
+  }
+}
+
 export function insertarViaje(db: BaseDeDatos, viaje: Viaje): void {
   insertarVehiculo(
     db,
@@ -93,6 +108,8 @@ export function insertarViaje(db: BaseDeDatos, viaje: Viaje): void {
     viaje.conductorAsignado,
     viaje.asistenteAsignado,
   );
+
+  insertarAsientos(db, viaje.idViaje, viaje.capacidad);
 }
 
 export function sembrarViaje(

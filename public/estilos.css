@@ -84,17 +84,20 @@ body {
   color: #3b4b5f;
 }
 
-.formulario-viaje input {
+.formulario-viaje input,
+.formulario-viaje select {
   display: block;
   width: 100%;
   margin-top: 0.25rem;
   padding: 0.45rem 0.6rem;
   border: 1px solid var(--borde);
   border-radius: 6px;
+  background: #ffffff;
   font: inherit;
 }
 
-.formulario-viaje input:focus {
+.formulario-viaje input:focus,
+.formulario-viaje select:focus {
   outline: 2px solid var(--primario);
   outline-offset: 1px;
 }

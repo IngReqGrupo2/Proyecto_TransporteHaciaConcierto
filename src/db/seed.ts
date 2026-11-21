@@ -75,7 +75,7 @@ const VIAJES: ViajeEjemplo[] = [
     lugarEncuentro: 'Plaza de la Ciudad',
     costo: 15000,
     capacidad: 17,
-    cuposDisponibles: 12,
+    cuposDisponibles: 17,
     estado: 'Publicado',
     conductorAsignado: 'Carlos Muñoz',
     asistenteAsignado: 'Ana Torres',
@@ -90,8 +90,8 @@ const VIAJES: ViajeEjemplo[] = [
     lugarEncuentro: 'Terminal de Buses',
     costo: 18000,
     capacidad: 10,
-    cuposDisponibles: 0,
-    estado: 'Publicado',
+    cuposDisponibles: 10,
+    estado: 'Borrador',
     conductorAsignado: 'Luis Pérez',
     asistenteAsignado: 'María Soto',
   },
@@ -149,6 +149,10 @@ export function cargarDatosEjemplo(db: BaseDeDatos): void {
       conductor_asignado = excluded.conductor_asignado,
       asistente_asignado = excluded.asistente_asignado
   `);
+  const guardarAsiento = db.prepare(`
+    INSERT OR IGNORE INTO asiento (id_viaje, numero)
+    VALUES (?, ?)
+  `);
 
   db.transaction(() => {
     for (const evento of EVENTOS) {
@@ -178,6 +182,10 @@ export function cargarDatosEjemplo(db: BaseDeDatos): void {
         viaje.conductorAsignado,
         viaje.asistenteAsignado,
       );
+
+      for (let numero = 1; numero <= viaje.capacidad; numero += 1) {
+        guardarAsiento.run(viaje.idViaje, numero);
+      }
     }
   })();
 }

@@ -3,7 +3,7 @@
 ## Proyecto
 - Nombre: Transporte hacia Concierto
 - Repositorio de documentación: esta carpeta
-- Última auditoría: 2026-11-16 — resultado: sin bloqueantes, con supuestos
+- Última auditoría: 2026-11-19 — resultado: sin bloqueantes, con supuestos
 
 ## Mapa de artefactos (rutas detectadas)
 | Artefacto | Ruta(s) | Estado |
@@ -26,7 +26,7 @@
   - El servicio de correo y la pasarela de pago se simulan como sistemas externos (interfaz + implementación simulada).
   - Se corrigió `12-trazabilidad.md`: se eliminó la referencia obsoleta a `CU-05` en `DSS-02`.
 - 2026-11-16, confirmado por el estudiante (auditoría de seguimiento):
-  - «Asiento» y «cupo» son conceptos diferentes pero relacionados. El modelo de dominio no tiene entidad `Asiento`; se mantiene así por ahora y se resolverá al implementar HU-02.
+  - «Asiento» y «cupo» son conceptos diferentes pero relacionados. *(Superado el 2026-11-18: se agregó la entidad `Asiento` al modelo de dominio.)*
   - Se mantienen los supuestos del 2026-11-14 sobre las actividades de HU-04 y HU-05.
   - El asistente de viaje sigue sin ser un rol del sistema.
   - La multiplicidad `Evento–Viaje` se mantiene como `1–1`.
@@ -35,6 +35,25 @@
   - El repositorio ya tiene HU-01 implementada; la documentación del curso no cambió desde el 2026-11-14.
 - 2026-11-17, a pedido del estudiante (HU-03):
   - La patente del vehículo usa solo el formato chileno actual: cuatro letras y dos dígitos (`AABB11`); se rechaza el formato antiguo (`AB1234`).
+- 2026-11-18, confirmado por el estudiante (auditoría de seguimiento):
+  - La reserva incluye un asiento físico y consume exactamente un cupo. Se agregó la entidad `Asiento` (`numero`) al modelo con `Viaje 1–1..17 Asiento` y `Reserva 1–1 Asiento`.
+  - Se corrigió la inconsistencia de responsable de nómina: `RP-08` y `RP-14` ahora asignan la consulta al administrador, igual que HU-04/CU-05. El asistente de viaje no es un rol del sistema.
+  - La relación `Vehiculo`–`Viaje` se mantiene como ya está implementada; no se modifica.
+  - El control de acceso y roles no se modela en el dominio; queda como supuesto de implementación.
+  - Capacidad máxima de pasajeros/asientos por viaje: 17.
+  - Fuente de verdad de historias y criterios: `04-historias-usuario.md` y `07-criterios-aceptacion.md`.
+  - `cambios_pendientes_main.md` se ignora: es una lista histórica cuyos puntos ya fueron resueltos.
+- 2026-11-19, a pedido del estudiante (ajuste del modelo de dominio):
+  - El diagrama se actualizó a `Vehiculo 1–0..* Viaje`, `Viaje *-- 1..* Asiento` (composición, «contiene») y `Asiento 1–0..* Reserva` («se asigna en»). Se alineó `08-modelo-dominio.md`.
+  - Un asiento puede acumular reservas históricas, pero solo una vigente a la vez, y debe pertenecer al mismo viaje de la reserva.
+  - La capacidad máxima de asientos por viaje sigue siendo 17.
+- 2026-11-19, validación de HU-02 confirmada por el estudiante:
+  - Una reserva equivale a un asiento y a un pasajero; varios cupos implican varias reservas (el TO-BE no se modifica).
+  - La retención del asiento ocurre al seleccionarlo (DSS-01); los «datos» del Gherkin son los datos del pasajero y los datos de pago pertenecen a HU-05 (DSS-02).
+  - El pasajero se identifica por RUT: si existe se reutiliza; todos los campos de `Pasajero` son obligatorios.
+  - `codigoReserva` lo genera el sistema y `vencimientoRetencion = fechaRegistro + 8 minutos`.
+  - La reserva se crea en estado «Pendiente de pago»; el Servicio de correo se simula.
+  - Ficha confirmada: `.cin324/historias/HU-02.md`.
 
 ## Stack (se define una sola vez)
 - Lenguaje y framework: TypeScript + Express + EJS
@@ -48,7 +67,7 @@
 | Historia | Estado | Cambio de OpenSpec | Fecha | Observaciones |
 |----------|--------|--------------------|-------|----------------|
 | HU-01 | generada, pendiente de validación | `hu-01-consultar-cartelera` | 2026-11-14 | Consultar cartelera (CU-01). Implementada; 15 pruebas pasan. Ficha `.cin324/historias/HU-01.md` |
-| HU-02 | pendiente | — | — | Registrar reserva y pasajero (CU-02, DSS-01, EST-01) |
+| HU-02 | generada, pendiente de validación | `hu-02-registrar-reserva` | 2026-11-19 | Registrar reserva y pasajero (CU-02, DSS-01, EST-01). Una reserva = un asiento = un pasajero. 66 pruebas pasan. Ficha `.cin324/historias/HU-02.md` |
 | HU-03 | generada; ajuste de fechas implementado, pendiente de validación | `hu-03-crear-viaje`, `ajuste-hu-03-fechas` | 2026-11-18 | Crear viaje (CU-04). Patente solo formato actual `AABB11`. Ajuste OBS-1: fechas reales del calendario, no anteriores a hoy y máximo 31/12/(año+100). 43 pruebas pasan. Ficha `.cin324/historias/HU-03.md` |
 | HU-04 | pendiente | — | — | Visualizar pasajeros (CU-05) |
 | HU-05 | pendiente | — | — | Pagar reserva (CU-03, DSS-02, EST-01/02) |
@@ -56,7 +75,7 @@
 ## Validaciones
 | Historia | Informe | Estado | Fecha |
 |----------|---------|--------|-------|
-| — | — | — | — |
+| HU-02 | `.cin324/historias/HU-02.md` | confirmada (validación directa) | 2026-11-19 |
 
 ## Cambios posteriores
 | Cambio | Historia afectada | Motivo | Fecha |

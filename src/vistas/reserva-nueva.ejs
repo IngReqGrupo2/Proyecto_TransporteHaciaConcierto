@@ -1,0 +1,66 @@
+<%- include('parciales/encabezado', { titulo: titulo }) %>
+
+<p><a class="volver" href="/cartelera/<%= viaje.idViaje %>">← Volver al viaje</a></p>
+
+<h1>Reservar asiento</h1>
+<p class="intro">
+  Viaje a <strong><%= viaje.eventoNombre %></strong> del <%= viaje.fechaViaje %>,
+  salida <%= viaje.horaSalida %> desde <%= viaje.lugarEncuentro %>.
+  Cupos disponibles: <strong><%= viaje.cuposDisponibles %></strong>.
+</p>
+
+<% if (error) { %>
+  <p class="mensaje-error" role="alert"><%= error %></p>
+<% } %>
+
+<%
+  const mensajeDe = (campo) => errores[campo] || null;
+  const atributosDe = (campo) =>
+    errores[campo] ? ' class="campo-invalido" aria-invalid="true"' : '';
+%>
+
+<form class="formulario-viaje" method="post" action="/cartelera/<%= viaje.idViaje %>/reservar">
+  <fieldset>
+    <legend>Asiento</legend>
+    <label>Selecciona un asiento
+      <select name="idAsiento" required<%- atributosDe('idAsiento') %>>
+        <option value="">Selecciona un asiento disponible</option>
+        <% asientos.forEach((asiento) => { %>
+          <option value="<%= asiento.idAsiento %>"<%= String(asiento.idAsiento) === valores.idAsiento ? ' selected' : '' %>>Asiento <%= asiento.numero %></option>
+        <% }); %>
+      </select>
+      <% if (mensajeDe('idAsiento')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('idAsiento') %></span><% } %>
+      <span class="ayuda">El asiento queda retenido por 8 minutos desde que confirmas la reserva.</span>
+    </label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Datos del pasajero</legend>
+    <label>RUT
+      <input type="text" name="rut" value="<%= valores.rut %>" placeholder="12345678-5" required<%- atributosDe('rut') %>>
+      <% if (mensajeDe('rut')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('rut') %></span><% } %>
+    </label>
+    <label>Nombres
+      <input type="text" name="nombres" value="<%= valores.nombres %>" required<%- atributosDe('nombres') %>>
+      <% if (mensajeDe('nombres')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('nombres') %></span><% } %>
+    </label>
+    <label>Apellidos
+      <input type="text" name="apellidos" value="<%= valores.apellidos %>" required<%- atributosDe('apellidos') %>>
+      <% if (mensajeDe('apellidos')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('apellidos') %></span><% } %>
+    </label>
+    <label>Teléfono
+      <input type="tel" name="telefono" value="<%= valores.telefono %>" required<%- atributosDe('telefono') %>>
+      <% if (mensajeDe('telefono')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('telefono') %></span><% } %>
+    </label>
+    <label>Correo electrónico
+      <input type="email" name="correoElectronico" value="<%= valores.correoElectronico %>" required<%- atributosDe('correoElectronico') %>>
+      <% if (mensajeDe('correoElectronico')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('correoElectronico') %></span><% } %>
+    </label>
+  </fieldset>
+
+  <button class="boton" type="submit">Confirmar reserva</button>
+</form>
+
+<p class="ayuda">La notificación de registro exitoso se envía mediante el Servicio de correo simulado; no se envía un correo real.</p>
+
+<%- include('parciales/pie') %>

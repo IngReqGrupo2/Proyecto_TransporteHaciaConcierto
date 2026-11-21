@@ -1,5 +1,0 @@
-CREATE TABLE evento (
-  id_evento INTEGER PRIMARY KEY AUTOINCREMENT,
-  nombre TEXT NOT NULL,
-  fecha_evento DATE NOT NULL
-);

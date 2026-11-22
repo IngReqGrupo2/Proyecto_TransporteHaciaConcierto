@@ -50,6 +50,10 @@
       <input type="number" name="costo" value="<%= valores.costo %>" min="1" step="1" required<%- atributosDe('costo') %>>
       <% if (mensajeDe('costo')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('costo') %></span><% } %>
     </label>
+    <label>Descripción (opcional)
+      <textarea name="descripcion" rows="3"<%- atributosDe('descripcion') %>><%= valores.descripcion %></textarea>
+      <% if (mensajeDe('descripcion')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('descripcion') %></span><% } %>
+    </label>
   </fieldset>
 
   <fieldset>

@@ -101,6 +101,95 @@ export function normalizarRut(rut: string): string {
   return rut.trim().toUpperCase().replace(/[.\-\s]/g, '');
 }
 
+function normalizarDatos(datos: DatosReserva): DatosReserva {
+  return {
+    idAsiento: datos.idAsiento.trim(),
+    rut: normalizarRut(datos.rut),
+    nombres: datos.nombres.trim(),
+    apellidos: datos.apellidos.trim(),
+    telefono: datos.telefono.trim(),
+    correoElectronico: datos.correoElectronico.trim(),
+  };
+}
+
+interface FilaReserva {
+  idReserva: number;
+  codigoReserva: string;
+  idPasajero: number;
+  idViaje: string;
+  idAsiento: number;
+  fechaRegistro: string;
+  vencimientoRetencion: string;
+  estado: string;
+  rut: string;
+  nombres: string;
+  apellidos: string;
+  telefono: string;
+  correoElectronico: string;
+  asientoNumero: number;
+  idEvento: number;
+  idVehiculo: number;
+  descripcion: string | null;
+  fechaViaje: string;
+  horaSalida: string;
+  horaRegreso: string;
+  lugarEncuentro: string;
+  costo: number;
+  capacidad: number;
+  cuposDisponibles: number;
+  estadoViaje: string;
+  conductorAsignado: string;
+  asistenteAsignado: string;
+  eventoNombre: string;
+  eventoFecha: string;
+  vehiculoModelo: string;
+  vehiculoPatente: string;
+}
+
+function mapearDetalle(fila: FilaReserva): ReservaDetalle {
+  return {
+    idReserva: fila.idReserva,
+    codigoReserva: fila.codigoReserva,
+    idPasajero: fila.idPasajero,
+    idViaje: fila.idViaje,
+    idAsiento: fila.idAsiento,
+    fechaRegistro: fila.fechaRegistro,
+    vencimientoRetencion: fila.vencimientoRetencion,
+    estado: fila.estado,
+    pasajero: {
+      idPasajero: fila.idPasajero,
+      rut: fila.rut,
+      nombres: fila.nombres,
+      apellidos: fila.apellidos,
+      telefono: fila.telefono,
+      correoElectronico: fila.correoElectronico,
+    },
+    asiento: {
+      idAsiento: fila.idAsiento,
+      idViaje: fila.idViaje,
+      numero: fila.asientoNumero,
+    },
+    viaje: {
+      idViaje: fila.idViaje,
+      idEvento: fila.idEvento,
+      idVehiculo: fila.idVehiculo,
+      descripcion: fila.descripcion,
+      fechaViaje: fila.fechaViaje,
+      horaSalida: fila.horaSalida,
+      horaRegreso: fila.horaRegreso,
+      lugarEncuentro: fila.lugarEncuentro,
+      costo: fila.costo,
+      capacidad: fila.capacidad,
+      cuposDisponibles: fila.cuposDisponibles,
+      estado: fila.estadoViaje,
+      conductorAsignado: fila.conductorAsignado,
+      asistenteAsignado: fila.asistenteAsignado,
+      eventoNombre: fila.eventoNombre,
+      eventoFecha: fila.eventoFecha,
+      vehiculoModelo: fila.vehiculoModelo,
+      vehiculoPatente: fila.vehiculoPatente,
+    },
+  };
 function idAsientoValido(valor: string): number {
   const id = Number(valor);
   if (!/^\d+$/.test(valor) || !Number.isSafeInteger(id) || id <= 0) {
@@ -123,6 +212,52 @@ export class ReservaRepositorio {
       ORDER BY numero`).all(idViaje) as Asiento[];
   }
 
+  buscarPorCodigo(codigoReserva: string): ReservaDetalle | undefined {
+    const fila = this.db
+      .prepare(`
+        SELECT
+          r.id_reserva AS idReserva,
+          r.codigo_reserva AS codigoReserva,
+          r.id_pasajero AS idPasajero,
+          r.id_viaje AS idViaje,
+          r.id_asiento AS idAsiento,
+          r.fecha_registro AS fechaRegistro,
+          r.vencimiento_retencion AS vencimientoRetencion,
+          r.estado AS estado,
+          p.rut AS rut,
+          p.nombres AS nombres,
+          p.apellidos AS apellidos,
+          p.telefono AS telefono,
+          p.correo_electronico AS correoElectronico,
+          a.numero AS asientoNumero,
+          v.id_evento AS idEvento,
+          v.id_vehiculo AS idVehiculo,
+          v.descripcion AS descripcion,
+          v.fecha_viaje AS fechaViaje,
+          v.hora_salida AS horaSalida,
+          v.hora_regreso AS horaRegreso,
+          v.lugar_encuentro AS lugarEncuentro,
+          v.costo AS costo,
+          v.capacidad AS capacidad,
+          v.cupos_disponibles AS cuposDisponibles,
+          v.estado AS estadoViaje,
+          v.conductor_asignado AS conductorAsignado,
+          v.asistente_asignado AS asistenteAsignado,
+          e.nombre AS eventoNombre,
+          e.fecha_evento AS eventoFecha,
+          ve.modelo AS vehiculoModelo,
+          ve.patente AS vehiculoPatente
+        FROM reserva r
+        INNER JOIN pasajero p ON p.id_pasajero = r.id_pasajero
+        INNER JOIN asiento a ON a.id_asiento = r.id_asiento
+        INNER JOIN viaje v ON v.id_viaje = r.id_viaje
+        INNER JOIN evento e ON e.id_evento = v.id_evento
+        INNER JOIN vehiculo ve ON ve.id_vehiculo = v.id_vehiculo
+        WHERE r.codigo_reserva = ?
+      `)
+      .get(codigoReserva) as FilaReserva | undefined;
+
+    return fila ? mapearDetalle(fila) : undefined;
   listarRetenidos(idViaje: string, cliente: string): Asiento[] {
     this.procesarVencimientos();
     return this.db.prepare(`SELECT ${COLUMNAS_ASIENTO} FROM asiento

@@ -107,7 +107,7 @@ Característica: Crear y publicar viajes
     Dado que el administrador ingresa como fecha del evento o del viaje <fecha>,
     Cuando intente publicar el viaje,
     Entonces el sistema lo impedirá
-    Y mostrará "La fecha del evento está fuera de rango." o "La fecha del viaje está fuera de rango." junto al campo correspondiente
+    Y mostrará "La fecha del evento debe ser una fecha real del calendario, no anterior a hoy y no posterior al 31 de diciembre del año actual más 100 años." o "La fecha del viaje debe ser una fecha real del calendario, no anterior a hoy y no posterior al 31 de diciembre del año actual más 100 años." junto al campo correspondiente
     Y el viaje no se creará.
 
     Ejemplos:

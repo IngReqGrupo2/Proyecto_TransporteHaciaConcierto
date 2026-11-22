@@ -39,7 +39,7 @@ El script es idempotente y carga tres eventos, dos vehículos y tres viajes:
 | `V-002` | `BJYR68` · Hyundai H1 (10) | Borrador | 10 | No aparece; su detalle responde 404 |
 | `V-003` | `LKPW42` · Mercedes-Benz Sprinter (17) | Borrador | 17 | No aparece; su detalle responde 404 |
 
-Cada viaje genera sus asientos al ser creado y el seed también los crea: `V-001` tiene 17 asientos, `V-002` tiene 10 y `V-003` tiene 17.
+Cada viaje genera sus asientos al ser creado y el seed también los crea: `V-001` tiene 17 asientos, `V-002` tiene 10 y `V-003` tiene 17. Los tres viajes de ejemplo incluyen una descripción.
 
 Repetir el seed conserva las retenciones y reservas existentes. Los cupos se
 recalculan desde los asientos libres después de procesar los vencimientos;
@@ -94,7 +94,8 @@ antigua con un pasajero plano sin retención previa.
 
 ### Validaciones al crear un viaje
 
-- Todos los campos del formulario son obligatorios; si falta alguno, se marca cada campo faltante y no se registra nada.
+- Todos los campos del formulario son obligatorios, excepto la descripción; si falta uno obligatorio, se marca cada campo faltante y no se registra nada.
+- La descripción es opcional: si se ingresa, se guarda con el viaje; si queda vacía o solo con espacios, el viaje se crea sin descripción (`NULL`).
 - El costo debe ser un monto numérico mayor que cero.
 - La patente debe tener el formato chileno actual: cuatro letras y dos dígitos (`AABB11`, por ejemplo `LKPW42`).
 - Las fechas del evento y del viaje deben existir en el calendario, no ser anteriores a hoy y no superar el 31 de diciembre del año actual más 100 años.
@@ -164,24 +165,14 @@ npm test
 npm run typecheck
 ```
 
-En PowerShell puedes ejecutar `npm.cmd test` y `npm.cmd run typecheck`.
+La verificación del ajuste el 2026-11-22 obtuvo **89 pruebas correctas en 10 archivos**, además del chequeo de tipos. Las pruebas usan SQLite en memoria o aislada y no modifican la base de datos de uso de la aplicación.
 
-La verificación del ajuste el 2026-11-22 obtuvo **89 pruebas correctas en 10
-archivos**, además del chequeo de tipos. Las pruebas usan SQLite en memoria o
-aislada y no modifican la base de datos de uso de la aplicación.
-
-- `tests/reservas.test.ts`: una prueba con el nombre de cada uno de los nueve
-  escenarios Gherkin de HU-02, más RUT reutilizado, formularios mal formados,
-  titularidad entre clientes, último cupo y errores de consulta.
-- `tests/reserva-repositorio.test.ts`: plazos desde selección, idempotencia,
-  rollback completo, guardas de transición y protección de asientos reocupados.
-- `tests/reserva-migracion.test.ts` y `tests/migraciones.test.ts`: esquema,
-  restricciones y migración 004→005 conservando reservas y sus historiales.
-- `tests/servidor.test.ts`: regularización al arrancar y liberación por el
-  temporizador sin solicitudes del usuario.
+- `tests/reservas.test.ts`: una prueba con el nombre de cada uno de los nueve escenarios Gherkin de HU-02, más RUT reutilizado, formularios mal formados, titularidad entre clientes, último cupo y errores de consulta.
+- `tests/reserva-repositorio.test.ts`: plazos desde selección, idempotencia, rollback completo, guardas de transición y protección de asientos reocupados.
+- `tests/reserva-migracion.test.ts` y `tests/migraciones.test.ts`: esquema, restricciones y migración 004→005 conservando reservas y sus historiales.
+- `tests/servidor.test.ts`: regularización al arrancar y liberación por el temporizador sin solicitudes del usuario.
 - `tests/seed.test.ts`: repetir el seed preservando reservas y retenciones.
-- Se mantienen las pruebas de HU-01 y HU-03, incluidas las validaciones de
-  creación de viajes, fechas, patente, nombres, capacidad y reutilización del vehículo.
+- Cobertura de escenarios de HU-01, HU-02 y HU-03 (incluidas validaciones de creación de viajes, fechas, patente, nombres, capacidad y reutilización del vehículo): campos faltantes y señalados, costo inválido, patente válida e inválida, fechas inválidas, nombres con al menos una letra, fecha del viaje no posterior a la del evento, descripción ingresada y vacía, capacidad, vehículo reutilizado, identificador consecutivo, reserva de un asiento disponible, rechazo de un asiento ocupado o de un viaje sin cupos, consulta de la reserva, reutilización del pasajero por RUT, retención de 8 minutos y unicidad de la reserva vigente, además de migraciones y datos de ejemplo.
 
 ## Estructura
 
@@ -191,7 +182,7 @@ src/
   server.ts               # arranque del servidor
   db/
     conexion.ts           # conexión SQLite y migraciones
-    migrations/           # 001–004: modelo original; 005: reserva múltiple y retenciones
+    migrations/           # 001–004: modelo original; 005: reserva múltiple y retenciones (006 pendiente: descripcion)
     seed.ts               # datos de ejemplo idempotentes
   dominio/
     viaje.ts              # tipos y repositorio de Evento/Vehiculo/Viaje

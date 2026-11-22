@@ -2,8 +2,33 @@ import { describe, expect, it } from 'vitest';
 import { cargarDatosEjemplo } from '../src/db/seed';
 import { ViajeRepositorio } from '../src/dominio/viaje';
 import { crearBaseDePrueba } from './ayudas';
+import { ReservaRepositorio } from '../src/dominio/reserva';
 
 describe('Datos de ejemplo', () => {
+  it('preserva retenciones y reservas al repetirse y regulariza vencimientos', () => {
+    const db = crearBaseDePrueba();
+    let fecha = new Date('2026-11-22T12:00:00.000Z');
+    const ahora = () => fecha;
+    try {
+      cargarDatosEjemplo(db, ahora);
+      const repo = new ReservaRepositorio(db, ahora);
+      repo.retenerAsiento('V-001', '1', 'A');
+      repo.retenerAsiento('V-001', '2', 'B');
+      repo.registrarReserva('V-001', 'A', { pasajeros: [{ idAsiento: '1', rut: '123K', nombres: 'Ana',
+        apellidos: 'Rojas', telefono: '123', correoElectronico: 'ana@ejemplo.cl' }], idaYVuelta: false, lugarRegreso: '' });
+      const antes = db.prepare('SELECT * FROM asiento WHERE id_asiento IN (1,2)').all();
+      cargarDatosEjemplo(db, ahora);
+      cargarDatosEjemplo(db, ahora);
+      expect(db.prepare('SELECT * FROM asiento WHERE id_asiento IN (1,2)').all()).toEqual(antes);
+      expect(new ViajeRepositorio(db).buscarPublicadoPorId('V-001')?.cuposDisponibles).toBe(15);
+      expect(repo.buscarPorCodigo('R-001')?.detalles).toHaveLength(1);
+      fecha = new Date('2026-11-22T12:08:00.000Z');
+      cargarDatosEjemplo(db, ahora);
+      expect(repo.buscarPorCodigo('R-001')?.estado).toBe('Vencida');
+      expect(new ViajeRepositorio(db).buscarPublicadoPorId('V-001')?.cuposDisponibles).toBe(17);
+      expect(repo.listarRetenidos('V-001', 'B')).toHaveLength(0);
+    } finally { db.close(); }
+  });
   it('son idempotentes y dejan un viaje disponible', () => {
     const db = crearBaseDePrueba();
 

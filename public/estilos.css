@@ -232,3 +232,21 @@ dd {
   color: #617184;
   font-size: 0.85rem;
 }
+
+.seleccion-asientos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+button.boton {
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pasajero-reserva {
+  border-top: 1px solid var(--borde);
+  padding-top: 0.5rem;
+}

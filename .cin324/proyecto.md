@@ -3,7 +3,7 @@
 ## Proyecto
 - Nombre: Transporte hacia Concierto
 - Repositorio de documentación: esta carpeta
-- Última auditoría: 2026-11-19 — resultado: sin bloqueantes, con supuestos
+- Última auditoría: 2026-11-22 — revisión focalizada de los artefactos modificados de HU-02 (commit `8bb3d96`); sin bloqueantes para el ajuste. Informe confirmado por el estudiante.
 
 ## Mapa de artefactos (rutas detectadas)
 | Artefacto | Ruta(s) | Estado |
@@ -47,13 +47,21 @@
   - El diagrama se actualizó a `Vehiculo 1–0..* Viaje`, `Viaje *-- 1..* Asiento` (composición, «contiene») y `Asiento 1–0..* Reserva` («se asigna en»). Se alineó `08-modelo-dominio.md`.
   - Un asiento puede acumular reservas históricas, pero solo una vigente a la vez, y debe pertenecer al mismo viaje de la reserva.
   - La capacidad máxima de asientos por viaje sigue siendo 17.
-- 2026-11-19, validación de HU-02 confirmada por el estudiante:
+- 2026-11-19, validación histórica de HU-02 (reglas de agrupación, vencimiento y alcance de expiración superadas por la revisión del 2026-11-22):
   - Una reserva equivale a un asiento y a un pasajero; varios cupos implican varias reservas (el TO-BE no se modifica).
   - La retención del asiento ocurre al seleccionarlo (DSS-01); los «datos» del Gherkin son los datos del pasajero y los datos de pago pertenecen a HU-05 (DSS-02).
   - El pasajero se identifica por RUT: si existe se reutiliza; todos los campos de `Pasajero` son obligatorios.
   - `codigoReserva` lo genera el sistema y `vencimientoRetencion = fechaRegistro + 8 minutos`.
   - La reserva se crea en estado «Pendiente de pago»; el Servicio de correo se simula.
   - Ficha confirmada: `.cin324/historias/HU-02.md`.
+- 2026-11-22, revisión de HU-02 confirmada por el estudiante (informe y cinco puntos de validación):
+  - Fuente de verdad vigente: `04-historias-usuario.md`, `07-criterios-aceptacion.md`, modelo de dominio actualizado, DSS-01 y EST-01; cambios documentados en el commit `8bb3d96`.
+  - Una reserva agrupa uno o varios asientos del mismo viaje con un único código y un `DetalleReserva` por asiento y pasajero.
+  - La retención se registra en `Asiento`, dura 8 minutos desde su selección y consume un cupo. Confirmar la reserva no reinicia plazos ni vuelve a descontar cupos.
+  - HU-02 incluye liberar retenciones vencidas sin reserva y vencer toda reserva pendiente cuando vence cualquiera de sus asientos, restituyendo todos sus cupos.
+  - Se registra `idaYVuelta` y se exige `lugarRegreso` únicamente si incluye ida y vuelta.
+  - Se mantienen los datos obligatorios del pasajero, su identificación por RUT y el Servicio de correo simulado con una notificación por pasajero.
+  - Ficha y especificaciones confirmadas; implementación de `ajuste-hu-02-reserva-multiple` autorizada explícitamente por el estudiante y completada. Verificación: 89 pruebas y tipos correctos; recorrido HTTP con dos clientes en SQLite temporal en memoria. Pendiente de aceptación del sistema.
 
 ## Stack (se define una sola vez)
 - Lenguaje y framework: TypeScript + Express + EJS
@@ -67,7 +75,7 @@
 | Historia | Estado | Cambio de OpenSpec | Fecha | Observaciones |
 |----------|--------|--------------------|-------|----------------|
 | HU-01 | generada, pendiente de validación | `hu-01-consultar-cartelera` | 2026-11-14 | Consultar cartelera (CU-01). Implementada; 15 pruebas pasan. Ficha `.cin324/historias/HU-01.md` |
-| HU-02 | generada, pendiente de validación | `hu-02-registrar-reserva` | 2026-11-19 | Registrar reserva y pasajero (CU-02, DSS-01, EST-01). Una reserva = un asiento = un pasajero. 66 pruebas pasan. Ficha `.cin324/historias/HU-02.md` |
+| HU-02 | ajuste implementado, pendiente de validación del sistema | `hu-02-registrar-reserva` (versión anterior); `ajuste-hu-02-reserva-multiple` (vigente) | 2026-11-22 | Reserva múltiple, retenciones desde selección, vencimiento completo y modalidad de regreso. Nueve escenarios vigentes cubiertos; 89 pruebas y tipos correctos. Migración conserva reservas anteriores. Verificación `.cin324/validaciones/VER-HU-02-implementacion.md`; guía en README. |
 | HU-03 | generada; ajuste de fechas implementado, pendiente de validación | `hu-03-crear-viaje`, `ajuste-hu-03-fechas` | 2026-11-18 | Crear viaje (CU-04). Patente solo formato actual `AABB11`. Ajuste OBS-1: fechas reales del calendario, no anteriores a hoy y máximo 31/12/(año+100). 43 pruebas pasan. Ficha `.cin324/historias/HU-03.md` |
 | HU-04 | pendiente | — | — | Visualizar pasajeros (CU-05) |
 | HU-05 | pendiente | — | — | Pagar reserva (CU-03, DSS-02, EST-01/02) |
@@ -75,9 +83,11 @@
 ## Validaciones
 | Historia | Informe | Estado | Fecha |
 |----------|---------|--------|-------|
-| HU-02 | `.cin324/historias/HU-02.md` | confirmada (validación directa) | 2026-11-19 |
+| HU-02 | `.cin324/historias/HU-02.md` | ficha y especificaciones confirmadas; implementación autorizada; no equivale a aceptación del sistema | 2026-11-22 |
+| HU-02 | `.cin324/validaciones/VER-HU-02-implementacion.md` | verificación técnica correcta; validación de aceptación del estudiante pendiente | 2026-11-22 |
 
 ## Cambios posteriores
 | Cambio | Historia afectada | Motivo | Fecha |
 |--------|-------------------|--------|-------|
 | `ajuste-hu-03-fechas` | HU-03 | OBS-1 de `VAL-HU-03-1.md`: rechazar fechas inexistentes, pasadas o posteriores a 100 años | 2026-11-18 |
+| `ajuste-hu-02-reserva-multiple` | HU-02 | Artefactos actualizados en `8bb3d96`: reserva con varios detalles, retención por selección, vencimiento completo y lugar de regreso. Especificaciones aprobadas y ajuste implementado/verificado; pendiente de aceptación del estudiante y archivado. | 2026-11-22 |

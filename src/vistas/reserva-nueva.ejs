@@ -1,66 +1,67 @@
 <%- include('parciales/encabezado', { titulo: titulo }) %>
 
 <p><a class="volver" href="/cartelera/<%= viaje.idViaje %>">← Volver al viaje</a></p>
-
-<h1>Reservar asiento</h1>
+<h1>Reservar asientos</h1>
 <p class="intro">
   Viaje a <strong><%= viaje.eventoNombre %></strong> del <%= viaje.fechaViaje %>,
   salida <%= viaje.horaSalida %> desde <%= viaje.lugarEncuentro %>.
   Cupos disponibles: <strong><%= viaje.cuposDisponibles %></strong>.
 </p>
+<% if (error) { %><p class="mensaje-error" role="alert"><%= error %></p><% } %>
 
-<% if (error) { %>
-  <p class="mensaje-error" role="alert"><%= error %></p>
-<% } %>
+<section aria-labelledby="seleccion-asientos">
+  <h2 id="seleccion-asientos">1. Selecciona tus asientos</h2>
+  <p>Selecciona todos tus asientos antes de completar los datos. Cada selección retiene el asiento
+    durante 8 minutos desde ese momento; confirmar la reserva no reinicia el plazo.</p>
+  <div class="seleccion-asientos">
+    <% asientos.forEach((asiento) => { %>
+      <form method="post" action="/cartelera/<%= viaje.idViaje %>/retenciones">
+        <input type="hidden" name="idAsiento" value="<%= asiento.idAsiento %>">
+        <button class="boton" type="submit">Seleccionar Asiento <%= asiento.numero %></button>
+      </form>
+    <% }); %>
+  </div>
+  <% if (!asientos.length) { %><p class="mensaje-vacio">No quedan asientos libres para añadir.</p><% } %>
+</section>
 
-<%
-  const mensajeDe = (campo) => errores[campo] || null;
-  const atributosDe = (campo) =>
-    errores[campo] ? ' class="campo-invalido" aria-invalid="true"' : '';
-%>
-
-<form class="formulario-viaje" method="post" action="/cartelera/<%= viaje.idViaje %>/reservar">
-  <fieldset>
-    <legend>Asiento</legend>
-    <label>Selecciona un asiento
-      <select name="idAsiento" required<%- atributosDe('idAsiento') %>>
-        <option value="">Selecciona un asiento disponible</option>
-        <% asientos.forEach((asiento) => { %>
-          <option value="<%= asiento.idAsiento %>"<%= String(asiento.idAsiento) === valores.idAsiento ? ' selected' : '' %>>Asiento <%= asiento.numero %></option>
+<% if (retenidos.length) { %>
+  <h2>2. Completa un pasajero por asiento</h2>
+  <form class="formulario-viaje" method="post" action="/cartelera/<%= viaje.idViaje %>/reservar">
+    <% retenidos.forEach((asiento) => {
+      const valoresPasajero = valores.pasajeros.find((p) => Number(p.idAsiento) === asiento.idAsiento) || {};
+    %>
+      <fieldset>
+        <legend>Asiento <%= asiento.numero %> · datos del pasajero</legend>
+        <p class="ayuda">Retenido para ti hasta <time datetime="<%= asiento.vencimientoRetencion %>"><%= formatearFechaHora(asiento.vencimientoRetencion) %></time>.</p>
+        <input type="hidden" name="pasajeros[<%= asiento.idAsiento %>][idAsiento]" value="<%= asiento.idAsiento %>">
+        <% [ ['rut', 'RUT', 'text'], ['nombres', 'Nombres', 'text'], ['apellidos', 'Apellidos', 'text'],
+             ['telefono', 'Teléfono', 'tel'], ['correoElectronico', 'Correo electrónico', 'email'] ].forEach(([campo, etiqueta, tipo]) => {
+          const mensaje = errores[`pasajeros.${asiento.idAsiento}.${campo}`];
+        %>
+          <label><%= etiqueta %>
+            <input type="<%= tipo %>" name="pasajeros[<%= asiento.idAsiento %>][<%= campo %>]" value="<%= valoresPasajero[campo] || '' %>" required<% if (mensaje) { %> class="campo-invalido" aria-invalid="true"<% } %>>
+            <% if (mensaje) { %><span class="mensaje-campo" role="alert"><%= mensaje %></span><% } %>
+          </label>
         <% }); %>
-      </select>
-      <% if (mensajeDe('idAsiento')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('idAsiento') %></span><% } %>
-      <span class="ayuda">El asiento queda retenido por 8 minutos desde que confirmas la reserva.</span>
-    </label>
-  </fieldset>
-
-  <fieldset>
-    <legend>Datos del pasajero</legend>
-    <label>RUT
-      <input type="text" name="rut" value="<%= valores.rut %>" placeholder="12345678-5" required<%- atributosDe('rut') %>>
-      <% if (mensajeDe('rut')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('rut') %></span><% } %>
-    </label>
-    <label>Nombres
-      <input type="text" name="nombres" value="<%= valores.nombres %>" required<%- atributosDe('nombres') %>>
-      <% if (mensajeDe('nombres')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('nombres') %></span><% } %>
-    </label>
-    <label>Apellidos
-      <input type="text" name="apellidos" value="<%= valores.apellidos %>" required<%- atributosDe('apellidos') %>>
-      <% if (mensajeDe('apellidos')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('apellidos') %></span><% } %>
-    </label>
-    <label>Teléfono
-      <input type="tel" name="telefono" value="<%= valores.telefono %>" required<%- atributosDe('telefono') %>>
-      <% if (mensajeDe('telefono')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('telefono') %></span><% } %>
-    </label>
-    <label>Correo electrónico
-      <input type="email" name="correoElectronico" value="<%= valores.correoElectronico %>" required<%- atributosDe('correoElectronico') %>>
-      <% if (mensajeDe('correoElectronico')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('correoElectronico') %></span><% } %>
-    </label>
-  </fieldset>
-
-  <button class="boton" type="submit">Confirmar reserva</button>
-</form>
-
-<p class="ayuda">La notificación de registro exitoso se envía mediante el Servicio de correo simulado; no se envía un correo real.</p>
-
+      </fieldset>
+    <% }); %>
+    <fieldset>
+      <legend>Modalidad de la reserva</legend>
+      <label>¿Incluye ida y vuelta?
+        <select name="idaYVuelta"<% if (errores.idaYVuelta) { %> class="campo-invalido" aria-invalid="true"<% } %>>
+          <option value="0"<%= !valores.idaYVuelta ? ' selected' : '' %>>No incluye ida y vuelta</option>
+          <option value="1"<%= valores.idaYVuelta ? ' selected' : '' %>>Sí, incluye ida y vuelta</option>
+        </select>
+      </label>
+      <label>Lugar de regreso (obligatorio si incluye ida y vuelta)
+        <input type="text" name="lugarRegreso" value="<%= valores.lugarRegreso %>"<% if (errores.lugarRegreso) { %> class="campo-invalido" aria-invalid="true"<% } %>>
+        <% if (errores.lugarRegreso) { %><span class="mensaje-campo" role="alert"><%= errores.lugarRegreso %></span><% } %>
+      </label>
+    </fieldset>
+    <button class="boton" type="submit">Confirmar reserva</button>
+  </form>
+<% } else { %>
+  <p class="ayuda">Selecciona al menos un asiento para ingresar sus pasajeros.</p>
+<% } %>
+<p class="ayuda">La reserva tendrá un único código. El Servicio de correo es simulado; no se envía correo real.</p>
 <%- include('parciales/pie') %>

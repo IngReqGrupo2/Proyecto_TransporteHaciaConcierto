@@ -1,173 +1,136 @@
-import { Router } from 'express';
+import { randomUUID } from 'node:crypto';
+import { Router, type Request, type Response } from 'express';
 import type { BaseDeDatos } from '../db/conexion';
-import {
-  ErrorSinDisponibilidad,
-  ErrorViajeNoDisponible,
-  ReservaRepositorio,
-  type DatosReserva,
-} from '../dominio/reserva';
+import { ErrorSinDisponibilidad, ErrorViajeNoDisponible, ReservaRepositorio,
+  type DatosPasajero, type DatosReserva } from '../dominio/reserva';
 import { ErrorValidacion, ViajeRepositorio } from '../dominio/viaje';
 import type { ServicioCorreo } from '../integraciones/correo';
 
-// HU-02 · CU-02 · Actividad TO-BE «Reservar cupos seleccionados y actualizar cupos»
-const VALORES_VACIOS: DatosReserva = {
-  idAsiento: '',
-  rut: '',
-  nombres: '',
-  apellidos: '',
-  telefono: '',
-  correoElectronico: '',
-};
+const VACIOS: DatosReserva = { pasajeros: [], idaYVuelta: false, lugarRegreso: '' };
 
-function extraerValores(cuerpo: Record<string, unknown>): DatosReserva {
-  const valor = (campo: keyof DatosReserva): string => {
-    const dato = cuerpo[campo];
-    return typeof dato === 'string' ? dato : '';
-  };
-
-  return {
-    idAsiento: valor('idAsiento'),
-    rut: valor('rut'),
-    nombres: valor('nombres'),
-    apellidos: valor('apellidos'),
-    telefono: valor('telefono'),
-    correoElectronico: valor('correoElectronico'),
-  };
+function clienteDe(req: Request, res: Response): string {
+  const cookie = req.headers.cookie?.split(';').map((c) => c.trim())
+    .find((c) => c.startsWith('clienteReserva='))?.slice('clienteReserva='.length);
+  if (cookie && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(cookie)) return cookie;
+  const cliente = randomUUID();
+  res.cookie('clienteReserva', cliente, { httpOnly: true, sameSite: 'lax', path: '/' });
+  return cliente;
 }
 
+function objeto(valor: unknown): valor is Record<string, unknown> {
+  return typeof valor === 'object' && valor !== null && !Array.isArray(valor);
+}
+
+function texto(valor: unknown, campo: string): string {
+  if (valor === undefined) return '';
+  if (typeof valor !== 'string') throw new ErrorValidacion([campo], 'Revisa los datos del formulario.');
+  return valor;
+}
+
+function extraerValores(cuerpo: unknown): DatosReserva {
+  if (!objeto(cuerpo)) throw new ErrorValidacion(['pasajeros'], 'Revisa los datos del formulario.');
+  const modalidad = texto(cuerpo.idaYVuelta, 'idaYVuelta');
+  if (!['', '0', '1'].includes(modalidad)) throw new ErrorValidacion(['idaYVuelta'], 'Selecciona una modalidad válida.');
+  const bruto = cuerpo.pasajeros;
+  if (bruto !== undefined && !objeto(bruto) && !Array.isArray(bruto)) {
+    throw new ErrorValidacion(['pasajeros'], 'Revisa los datos de los pasajeros.');
+  }
+  const entradas = Object.entries(bruto ?? {});
+  if (entradas.length > 17) throw new ErrorValidacion(['pasajeros'], 'Revisa la selección de asientos.');
+  const pasajeros: DatosPasajero[] = entradas.map(([clave, valor]) => {
+    if (!objeto(valor)) throw new ErrorValidacion(['pasajeros'], 'Revisa los datos de los pasajeros.');
+    // qs puede compactar claves numéricas como un array; el campo oculto conserva el ID.
+    const idAsiento = texto(valor.idAsiento ?? (Array.isArray(bruto) ? undefined : clave), 'idAsiento');
+    if (!/^\d+$/.test(idAsiento) || (!Array.isArray(bruto) && Number(clave) !== Number(idAsiento))) {
+      throw new ErrorValidacion(['pasajeros'], 'Revisa la selección de asientos.');
+    }
+    return { idAsiento, rut: texto(valor.rut, `pasajeros.${idAsiento}.rut`),
+      nombres: texto(valor.nombres, `pasajeros.${idAsiento}.nombres`),
+      apellidos: texto(valor.apellidos, `pasajeros.${idAsiento}.apellidos`),
+      telefono: texto(valor.telefono, `pasajeros.${idAsiento}.telefono`),
+      correoElectronico: texto(valor.correoElectronico, `pasajeros.${idAsiento}.correoElectronico`) };
+  });
+  return { pasajeros, idaYVuelta: modalidad === '1', lugarRegreso: texto(cuerpo.lugarRegreso, 'lugarRegreso') };
+}
+
+// HU-02 · CU-02 · DSS-01 · TO-BE: seleccionar, verificar y registrar cupos.
 export function crearRutasReservas(
-  db: BaseDeDatos,
-  correo: ServicioCorreo,
+  db: BaseDeDatos, correo: ServicioCorreo, ahora: () => Date = () => new Date(),
 ): Router {
   const router = Router();
-  const reservas = new ReservaRepositorio(db);
+  const reservas = new ReservaRepositorio(db, ahora);
   const viajes = new ViajeRepositorio(db);
 
-  router.get('/cartelera/:idViaje/reservar', (req, res) => {
-    const viaje = viajes.buscarPublicadoPorId(req.params.idViaje);
-
+  function formulario(res: Response, idViaje: string, cliente: string,
+    valores: DatosReserva = VACIOS, error: ErrorValidacion | ErrorSinDisponibilidad | null = null): void {
+    reservas.procesarVencimientos();
+    const viaje = viajes.buscarPublicadoPorId(idViaje);
     if (!viaje) {
-      res.status(404).render('error', {
-        titulo: 'Viaje no encontrado',
-        mensaje: 'El viaje no existe o no está disponible.',
-      });
+      res.status(404).render('error', { titulo: 'Viaje no encontrado', mensaje: 'El viaje no existe o no está disponible.' });
       return;
     }
-
-    if (viaje.cuposDisponibles <= 0) {
-      res.status(400).render('error', {
-        titulo: 'Sin cupos disponibles',
-        mensaje: 'No hay cupos disponibles para el viaje seleccionado.',
-      });
-      return;
+    const retenidos = reservas.listarRetenidos(idViaje, cliente);
+    const errores: Record<string, string> = {};
+    if (error instanceof ErrorValidacion) {
+      for (const campo of error.campos) errores[campo] = error.message;
     }
+    res.status(error || (viaje.cuposDisponibles <= 0 && retenidos.length === 0) ? 400 : 200)
+      .render('reserva-nueva', { titulo: 'Reservar asientos', viaje,
+        asientos: reservas.listarAsientosDisponibles(idViaje), retenidos, valores, errores,
+        error: error?.message ?? (viaje.cuposDisponibles <= 0 && retenidos.length === 0
+          ? 'No hay cupos disponibles para el viaje seleccionado.' : null) });
+  }
 
-    res.render('reserva-nueva', {
-      titulo: 'Reservar asiento',
-      viaje,
-      asientos: reservas.listarAsientosDisponibles(viaje.idViaje),
-      valores: VALORES_VACIOS,
-      error: null,
-      errores: {},
-    });
+  router.get('/cartelera/:idViaje/reservar', (req, res) => {
+    formulario(res, req.params.idViaje, clienteDe(req, res));
+  });
+
+  router.post('/cartelera/:idViaje/retenciones', (req, res) => {
+    const cliente = clienteDe(req, res);
+    try {
+      reservas.retenerAsiento(req.params.idViaje, texto(req.body?.idAsiento, 'idAsiento'), cliente);
+      res.redirect(303, `/cartelera/${encodeURIComponent(req.params.idViaje)}/reservar`);
+    } catch (error) {
+      if (error instanceof ErrorValidacion || error instanceof ErrorSinDisponibilidad) {
+        formulario(res, req.params.idViaje, cliente, VACIOS, error);
+      } else if (error instanceof ErrorViajeNoDisponible) {
+        res.status(404).render('error', { titulo: 'Viaje no encontrado', mensaje: error.message });
+      } else throw error;
+    }
   });
 
   router.post('/cartelera/:idViaje/reservar', (req, res) => {
-    const valores = extraerValores(req.body as Record<string, unknown>);
-
+    const cliente = clienteDe(req, res);
+    let valores = VACIOS;
     try {
-      const reserva = reservas.registrarReserva(req.params.idViaje, valores);
-
-      try {
-        correo.solicitarNotificacionRegistroExitoso(
-          reserva.pasajero.correoElectronico,
-          reserva,
-        );
-      } catch (error) {
-        console.error('No se pudo registrar la notificación simulada.', error);
+      valores = extraerValores(req.body);
+      const reserva = reservas.registrarReserva(req.params.idViaje, cliente, valores);
+      const pasajeros = new Map(reserva.detalles.map((d) => [d.pasajero.idPasajero, d.pasajero]));
+      for (const pasajero of pasajeros.values()) {
+        try {
+          correo.solicitarNotificacionRegistroExitoso(pasajero.correoElectronico, reserva,
+            reserva.detalles.filter((d) => d.pasajero.idPasajero === pasajero.idPasajero).map((d) => d.asiento));
+        } catch (error) {
+          console.error('No se pudo registrar la notificación simulada.', error);
+        }
       }
-
-      res.status(201).render('reserva-creada', {
-        titulo: 'Reserva registrada',
-        reserva,
-      });
+      res.status(201).render('reserva-creada', { titulo: 'Reserva registrada', reserva });
     } catch (error) {
-      if (error instanceof ErrorValidacion) {
-        const viaje = viajes.buscarPublicadoPorId(req.params.idViaje);
-        if (!viaje) {
-          res.status(404).render('error', {
-            titulo: 'Viaje no encontrado',
-            mensaje: 'El viaje no existe o no está disponible.',
-          });
-          return;
-        }
-
-        const errores: Record<string, string> = {};
-        for (const campo of error.campos) {
-          errores[campo] = error.message;
-        }
-
-        res.status(400).render('reserva-nueva', {
-          titulo: 'Reservar asiento',
-          viaje,
-          asientos: reservas.listarAsientosDisponibles(viaje.idViaje),
-          valores,
-          error: error.message,
-          errores,
-        });
-        return;
-      }
-
-      if (error instanceof ErrorSinDisponibilidad) {
-        const viaje = viajes.buscarPublicadoPorId(req.params.idViaje);
-        if (!viaje) {
-          res.status(404).render('error', {
-            titulo: 'Viaje no encontrado',
-            mensaje: 'El viaje no existe o no está disponible.',
-          });
-          return;
-        }
-
-        res.status(400).render('reserva-nueva', {
-          titulo: 'Reservar asiento',
-          viaje,
-          asientos: reservas.listarAsientosDisponibles(viaje.idViaje),
-          valores,
-          error: error.message,
-          errores: {},
-        });
-        return;
-      }
-
-      if (error instanceof ErrorViajeNoDisponible) {
-        res.status(404).render('error', {
-          titulo: 'Viaje no encontrado',
-          mensaje: error.message,
-        });
-        return;
-      }
-
-      throw error;
+      if (error instanceof ErrorValidacion || error instanceof ErrorSinDisponibilidad) {
+        formulario(res, req.params.idViaje, cliente, valores, error);
+      } else if (error instanceof ErrorViajeNoDisponible) {
+        res.status(404).render('error', { titulo: 'Viaje no encontrado', mensaje: error.message });
+      } else throw error;
     }
   });
 
   router.get('/reservas/:codigoReserva', (req, res) => {
-    const codigo = req.params.codigoReserva.trim().toUpperCase();
-    const reserva = reservas.buscarPorCodigo(codigo);
-
+    const reserva = reservas.buscarPorCodigo(req.params.codigoReserva);
     if (!reserva) {
-      res.status(404).render('error', {
-        titulo: 'Reserva no encontrada',
-        mensaje: 'No se encontró la reserva solicitada.',
-      });
+      res.status(404).render('error', { titulo: 'Reserva no encontrada', mensaje: 'No se encontró la reserva solicitada.' });
       return;
     }
-
-    res.render('reserva-detalle', {
-      titulo: `Reserva ${reserva.codigoReserva}`,
-      reserva,
-    });
+    res.render('reserva-detalle', { titulo: `Reserva ${reserva.codigoReserva}`, reserva });
   });
-
   return router;
 }

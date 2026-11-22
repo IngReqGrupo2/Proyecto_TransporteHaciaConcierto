@@ -3,30 +3,10 @@
 <h1>Reserva registrada</h1>
 <p class="mensaje-exito" role="status">
   La reserva <%= reserva.codigoReserva %> quedó registrada en estado «<%= reserva.estado %>».
-  El asiento <%= reserva.asiento.numero %> está retenido hasta las
-  <%= formatearFechaHora(reserva.vencimientoRetencion) %>.
+  Todos sus asientos conservan los vencimientos originales de su selección.
 </p>
 
-<article class="detalle-viaje">
-  <dl>
-    <dt>Código de reserva</dt>
-    <dd><%= reserva.codigoReserva %></dd>
-    <dt>Pasajero</dt>
-    <dd><%= reserva.pasajero.nombres %> <%= reserva.pasajero.apellidos %> · RUT <%= reserva.pasajero.rut %></dd>
-    <dt>Correo electrónico</dt>
-    <dd><%= reserva.pasajero.correoElectronico %></dd>
-    <dt>Evento</dt>
-    <dd><%= reserva.viaje.eventoNombre %></dd>
-    <dt>Viaje</dt>
-    <dd><%= reserva.viaje.fechaViaje %> · salida <%= reserva.viaje.horaSalida %> desde <%= reserva.viaje.lugarEncuentro %></dd>
-    <dt>Asiento</dt>
-    <dd>Asiento <%= reserva.asiento.numero %></dd>
-    <dt>Fecha de registro</dt>
-    <dd><%= formatearFechaHora(reserva.fechaRegistro) %></dd>
-    <dt>Estado</dt>
-    <dd><%= reserva.estado %></dd>
-  </dl>
-</article>
+<%- include('parciales/reserva-info', { reserva: reserva }) %>
 
 <p class="ayuda">El Servicio de correo es simulado: la notificación de registro exitoso quedó registrada, pero no se envía un correo real.</p>
 

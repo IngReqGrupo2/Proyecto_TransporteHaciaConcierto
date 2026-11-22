@@ -28,6 +28,7 @@ describe('Migraciones de base de datos', () => {
         'pasajero',
         'asiento',
         'reserva',
+        'detalle_reserva',
         'integraciones_log',
         'schema_migrations',
       ]),
@@ -39,7 +40,7 @@ describe('Migraciones de base de datos', () => {
     expect(indices.map((indice) => indice.name)).toEqual(
       expect.arrayContaining([
         'ux_asiento_viaje_id',
-        'ux_reserva_asiento_activa',
+        'idx_asiento_reserva_vigente',
       ]),
     );
 
@@ -172,7 +173,7 @@ describe('Migraciones de base de datos', () => {
     }
   });
 
-  it('permite una sola reserva vigente por asiento', () => {
+  it('impide repetir un asiento dentro de una reserva y conserva el historial', () => {
     const db = crearBaseDePrueba();
 
     try {
@@ -191,20 +192,18 @@ describe('Migraciones de base de datos', () => {
         .get() as { idAsiento: number };
 
       const insertar = db.prepare(`
-        INSERT INTO reserva (
-          codigo_reserva, id_pasajero, id_viaje, id_asiento,
-          fecha_registro, vencimiento_retencion, estado
-        )
-        VALUES (?, 1, 'V-001', ?, '2026-11-19T12:00:00.000Z',
-          '2026-11-19T12:08:00.000Z', ?)
+        INSERT INTO reserva (codigo_reserva, id_viaje, fecha_registro, estado)
+        VALUES (?, 'V-001', '2026-11-19T12:00:00.000Z', ?)
       `);
-
-      insertar.run('R-001', asiento.idAsiento, 'Pendiente de pago');
-      expect(() =>
-        insertar.run('R-002', asiento.idAsiento, 'Pagada'),
-      ).toThrow();
-
-      insertar.run('R-003', asiento.idAsiento, 'Vencida');
+      const detalle = db.prepare(`
+        INSERT INTO detalle_reserva (id_reserva, id_viaje, id_asiento, id_pasajero)
+        VALUES (?, 'V-001', ?, 1)
+      `);
+      const primera = insertar.run('R-001', 'Pendiente de pago');
+      detalle.run(primera.lastInsertRowid, asiento.idAsiento);
+      expect(() => detalle.run(primera.lastInsertRowid, asiento.idAsiento)).toThrow();
+      const historica = insertar.run('R-003', 'Vencida');
+      detalle.run(historica.lastInsertRowid, asiento.idAsiento);
       const reservas = db
         .prepare('SELECT COUNT(*) AS total FROM reserva')
         .get() as { total: number };

@@ -3,30 +3,10 @@
 <h1>Estado de la reserva</h1>
 <p class="intro">Consulta de la reserva <strong><%= reserva.codigoReserva %></strong>.</p>
 
-<article class="detalle-viaje">
-  <dl>
-    <dt>Código de reserva</dt>
-    <dd><%= reserva.codigoReserva %></dd>
-    <dt>Pasajero</dt>
-    <dd><%= reserva.pasajero.nombres %> <%= reserva.pasajero.apellidos %> · RUT <%= reserva.pasajero.rut %></dd>
-    <dt>Evento</dt>
-    <dd><%= reserva.viaje.eventoNombre %></dd>
-    <dt>Fecha del viaje</dt>
-    <dd><%= reserva.viaje.fechaViaje %></dd>
-    <dt>Hora de salida</dt>
-    <dd><%= reserva.viaje.horaSalida %></dd>
-    <dt>Lugar de encuentro</dt>
-    <dd><%= reserva.viaje.lugarEncuentro %></dd>
-    <dt>Asiento</dt>
-    <dd>Asiento <%= reserva.asiento.numero %></dd>
-    <dt>Fecha de registro</dt>
-    <dd><%= formatearFechaHora(reserva.fechaRegistro) %></dd>
-    <dt>Retención hasta</dt>
-    <dd><%= formatearFechaHora(reserva.vencimientoRetencion) %></dd>
-    <dt>Estado</dt>
-    <dd><%= reserva.estado %></dd>
-  </dl>
-</article>
+<%- include('parciales/reserva-info', { reserva: reserva }) %>
+<% if (reserva.estado === 'Vencida') { %>
+  <p class="mensaje-vacio">La reserva venció. Todos sus asientos fueron liberados.</p>
+<% } %>
 
 <p>
   <a class="boton" href="/cartelera">Volver a la cartelera</a>

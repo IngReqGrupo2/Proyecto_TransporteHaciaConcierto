@@ -7,13 +7,16 @@ import express, {
 import path from 'node:path';
 import type { BaseDeDatos } from './db/conexion';
 import { ServicioCorreoSimulado } from './integraciones/correo';
+import { ReservaRepositorio } from './dominio/reserva';
 import { crearRutasAdminViajes } from './rutas/admin-viajes';
 import { crearRutasCartelera } from './rutas/cartelera';
 import { crearRutasReservas } from './rutas/reservas';
 import { formatearFechaHora, formatearMonto } from './util/formato';
 
-export function crearApp(db: BaseDeDatos): Express {
+export function crearApp(db: BaseDeDatos, opciones: { ahora?: () => Date } = {}): Express {
   const app = express();
+  const ahora = opciones.ahora ?? (() => new Date());
+  const reservas = new ReservaRepositorio(db, ahora);
 
   app.disable('x-powered-by');
   app.set('view engine', 'ejs');
@@ -22,13 +25,14 @@ export function crearApp(db: BaseDeDatos): Express {
   app.locals.formatearFechaHora = formatearFechaHora;
 
   app.use(express.static(path.join(process.cwd(), 'public')));
-  app.use(express.urlencoded({ extended: false }));
+  app.use(express.urlencoded({ extended: true }));
   app.use((_req, res, next) => {
+    reservas.procesarVencimientos();
     res.locals.rol = 'Pasajero';
     next();
   });
   app.use(crearRutasCartelera(db));
-  app.use(crearRutasReservas(db, new ServicioCorreoSimulado(db)));
+  app.use(crearRutasReservas(db, new ServicioCorreoSimulado(db), ahora));
   app.use(crearRutasAdminViajes(db));
 
   app.use((_req, res) => {

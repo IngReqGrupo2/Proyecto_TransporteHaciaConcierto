@@ -1,10 +1,11 @@
 import type { BaseDeDatos } from '../db/conexion';
-import type { Reserva } from '../dominio/reserva';
+import type { Asiento, Reserva } from '../dominio/reserva';
 
 export interface ServicioCorreo {
   solicitarNotificacionRegistroExitoso(
     destinatario: string,
     reserva: Reserva,
+    asientos: Asiento[],
   ): void;
 }
 
@@ -14,6 +15,7 @@ export class ServicioCorreoSimulado implements ServicioCorreo {
   solicitarNotificacionRegistroExitoso(
     destinatario: string,
     reserva: Reserva,
+    asientos: Asiento[],
   ): void {
     this.db
       .prepare(`
@@ -27,7 +29,7 @@ export class ServicioCorreoSimulado implements ServicioCorreo {
           destinatario,
           codigoReserva: reserva.codigoReserva,
           idViaje: reserva.idViaje,
-          idAsiento: reserva.idAsiento,
+          asientos: asientos.map((asiento) => ({ idAsiento: asiento.idAsiento, numero: asiento.numero })),
           estado: reserva.estado,
         }),
         new Date().toISOString(),

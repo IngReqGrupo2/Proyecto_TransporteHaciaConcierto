@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { abrirBaseDeDatos } from './conexion';
 import type { BaseDeDatos } from './conexion';
+import { ReservaRepositorio } from '../dominio/reserva';
 
 interface EventoEjemplo {
   idEvento: number;
@@ -118,7 +119,7 @@ const VIAJES: ViajeEjemplo[] = [
   },
 ];
 
-export function cargarDatosEjemplo(db: BaseDeDatos): void {
+export function cargarDatosEjemplo(db: BaseDeDatos, ahora: () => Date = () => new Date()): void {
   const guardarEvento = db.prepare(`
     INSERT INTO evento (id_evento, nombre, fecha_evento)
     VALUES (?, ?, ?)
@@ -151,7 +152,6 @@ export function cargarDatosEjemplo(db: BaseDeDatos): void {
       lugar_encuentro = excluded.lugar_encuentro,
       costo = excluded.costo,
       capacidad = excluded.capacidad,
-      cupos_disponibles = excluded.cupos_disponibles,
       estado = excluded.estado,
       conductor_asignado = excluded.conductor_asignado,
       asistente_asignado = excluded.asistente_asignado
@@ -195,6 +195,13 @@ export function cargarDatosEjemplo(db: BaseDeDatos): void {
         guardarAsiento.run(viaje.idViaje, numero);
       }
     }
+    // HU-02: sembrar de nuevo no repone cupos retenidos ni reservados.
+    new ReservaRepositorio(db, ahora).procesarVencimientos();
+    const recalcularCupos = db.prepare(`UPDATE viaje SET cupos_disponibles = capacidad - (
+      SELECT COUNT(*) FROM asiento a WHERE a.id_viaje = viaje.id_viaje
+        AND (a.cliente_retencion IS NOT NULL OR a.id_reserva_vigente IS NOT NULL)
+    ) WHERE id_viaje = ?`);
+    for (const viaje of VIAJES) recalcularCupos.run(viaje.idViaje);
   })();
 }
 

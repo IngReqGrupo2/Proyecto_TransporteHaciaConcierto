@@ -1,0 +1,28 @@
+<article class="detalle-viaje">
+  <dl>
+    <dt>Código de reserva</dt><dd><%= reserva.codigoReserva %></dd>
+    <dt>Evento</dt><dd><%= reserva.viaje.eventoNombre %></dd>
+    <dt>Viaje</dt><dd><%= reserva.viaje.idViaje %> · <%= reserva.viaje.fechaViaje %></dd>
+    <dt>Hora de salida</dt><dd><%= reserva.viaje.horaSalida %></dd>
+    <dt>Lugar de encuentro</dt><dd><%= reserva.viaje.lugarEncuentro %></dd>
+    <dt>Fecha de registro</dt><dd><%= formatearFechaHora(reserva.fechaRegistro) %></dd>
+    <dt>Estado</dt><dd><%= reserva.estado %></dd>
+    <dt>Ida y vuelta</dt><dd><%= reserva.idaYVuelta ? 'Sí, incluye ida y vuelta' : 'No incluye ida y vuelta' %></dd>
+    <% if (reserva.idaYVuelta) { %><dt>Lugar de regreso</dt><dd><%= reserva.lugarRegreso %></dd><% } %>
+  </dl>
+  <h2>Asientos y pasajeros</h2>
+  <% reserva.detalles.forEach((detalle) => { %>
+    <section class="pasajero-reserva">
+      <h3>Asiento <%= detalle.asiento.numero %></h3>
+      <dl>
+        <dt>Pasajero</dt><dd><%= detalle.pasajero.nombres %> <%= detalle.pasajero.apellidos %></dd>
+        <dt>RUT</dt><dd><%= detalle.pasajero.rut %></dd>
+        <dt>Teléfono</dt><dd><%= detalle.pasajero.telefono %></dd>
+        <dt>Correo electrónico</dt><dd><%= detalle.pasajero.correoElectronico %></dd>
+        <% if (reserva.estado === 'Pendiente de pago' && detalle.asiento.vencimientoRetencion) { %>
+          <dt>Retención hasta</dt><dd><time datetime="<%= detalle.asiento.vencimientoRetencion %>"><%= formatearFechaHora(detalle.asiento.vencimientoRetencion) %></time></dd>
+        <% } %>
+      </dl>
+    </section>
+  <% }); %>
+</article>

@@ -54,8 +54,8 @@ Abre <http://localhost:3000>.
 | Método y ruta | Qué hace |
 |---------------|----------|
 | `GET /` | Redirige a `/cartelera` |
-| `GET /cartelera` | Lista los viajes publicados con cupos disponibles; si no hay, muestra «No hay viajes disponibles» |
-| `GET /cartelera/:idViaje` | Muestra el detalle y los cupos del viaje; responde 404 si no existe o no está publicado |
+| `GET /cartelera` | Lista los viajes publicados con cupos disponibles y muestra la capacidad y los cupos de cada uno; si no hay, muestra «No hay viajes disponibles» |
+| `GET /cartelera/:idViaje` | Muestra el detalle, la capacidad y los cupos del viaje; si no tiene cupos, muestra «No hay cupos disponibles para este viaje.»; responde 404 si no existe o no está publicado |
 | `GET /cartelera/:idViaje/reservar` | Muestra el formulario para elegir un asiento disponible y registrar al pasajero; responde 400 si el viaje no tiene cupos |
 | `POST /cartelera/:idViaje/reservar` | Registra la reserva en estado «Pendiente de pago», ocupa el asiento, descuenta un cupo y solicita la notificación simulada; responde 201 o 400 con los errores |
 | `GET /reservas/:codigoReserva` | Muestra el pasajero, el viaje, el asiento y el estado de la reserva; responde 404 si no existe |

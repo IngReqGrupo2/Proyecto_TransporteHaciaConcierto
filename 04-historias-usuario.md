@@ -13,15 +13,21 @@ Como **pasajero**, quiero **explorar la cartelera y seleccionar un viaje disponi
  
 ## HU-02 — Registrar reserva y pasajero
 
-Como pasajero, quiero ingresar mis datos para reservar un asiento en el viaje seleccionado.
+Como pasajero, quiero seleccionar uno o varios asientos del mismo viaje e ingresar los datos de un pasajero por asiento, para registrar todos los cupos seleccionados en una única reserva.
 
 **Actividad TO-BE asociada:** Seleccionar cupos e ingresar datos de pasajeros.
 
 **Criterios de aceptación:**
-- CA1: Dado que el cliente ha seleccionado un viaje con cupos disponibles, cuando inicia el proceso de reserva, entonces el sistema debe permitir ingresar los datos requeridos del pasajero.
-- CA2: Dado que el cliente ha ingresado correctamente sus datos, cuando confirma la reserva, entonces el sistema debe registrar al pasajero y asociarlo al viaje seleccionado.
-- CA3: Dado que la reserva fue registrada correctamente, cuando el cliente consulta su reserva, entonces el sistema debe mostrar que se encuentra asociado al viaje seleccionado.
-- CA4: Dado que se generó la reserva pendiente, cuando el sistema guarda el registro, entonces se conecta con un servicio de correos externo para enviar automáticamente una notificación al pasajero indicando que su cupo fue registrado exitosamente.
+- CA1: Dado que el cliente ha seleccionado un viaje con cupos disponibles, cuando inicia el proceso de reserva, entonces el sistema debe permitir seleccionar uno o varios asientos disponibles e ingresar los datos requeridos de un pasajero por cada asiento.
+- CA2: Dado que un asiento está disponible, cuando el cliente lo selecciona, entonces el sistema debe retenerlo durante 8 minutos desde ese momento, registrar el vencimiento de la retención en el asiento e impedir que otro cliente lo seleccione durante ese plazo.
+- CA3: Dado que todos los datos de los pasajeros son válidos y todas las retenciones siguen vigentes para el cliente que confirma, cuando este confirma la operación, entonces el sistema debe registrar una única reserva en estado pendiente de pago, generar un único código y asociar a ella el viaje y todos los asientos seleccionados, identificando al pasajero correspondiente a cada asiento y sin reiniciar sus plazos de retención.
+- CA4: Dado que la reserva fue registrada correctamente, cuando el cliente la consulta mediante su código, entonces el sistema debe mostrar el viaje, todos los asientos incluidos, el pasajero correspondiente a cada asiento, el estado de la reserva y si esta incluye ida y vuelta; en ese último caso, también debe mostrar el lugar de regreso ingresado.
+- CA5: Dado que se generó la reserva pendiente, cuando el sistema guarda el registro, entonces se conecta con un servicio de correos externo para enviar automáticamente a cada pasajero una notificación indicando que su cupo fue registrado exitosamente.
+- CA6: Dado que alguno de los asientos seleccionados ya no está disponible para el cliente o su retención venció antes de confirmar, cuando el cliente intenta registrar la reserva, entonces el sistema no debe crear la reserva ni registrar parcialmente los asientos y debe informar que es necesario revisar la selección.
+- CA7: Dado que existe una reserva pendiente de pago con varios asientos, cuando vence la retención de cualquiera de ellos sin que se haya aprobado el pago, entonces el sistema debe marcar la reserva completa como vencida y liberar todos sus asientos.
+- CA8: Dado que el cliente está completando su reserva, cuando indica que esta incluye ida y vuelta, entonces el sistema debe solicitar que ingrese el lugar de regreso y guardarlo como parte de la reserva.
+- CA9: Dado que la reserva es de ida y vuelta, cuando el cliente intenta confirmarla sin ingresar el lugar de regreso, entonces el sistema debe impedir el registro e indicar que ese campo es obligatorio.
+- CA10: Dado que la reserva no incluye ida y vuelta, cuando el cliente confirma la operación con los demás datos válidos y las retenciones vigentes, entonces el sistema debe permitir registrar la reserva sin exigir un lugar de regreso.
 
 ## HU-03 — Crear un viaje en el sistema
 
@@ -51,11 +57,14 @@ Como **administrador**, quiero **visualizar la lista de pasajeros confirmados de
 
 ## HU-05 — Pagar reserva
 
-Como **pasajero**, quiero **pagar mi reserva de forma online utilizando distintos métodos de pago (tarjeta de crédito o débito)**, para **confirmar mi cupo y asegurar mi asiento sin tener que coordinar transferencias manuales**.
+Como **pasajero**, quiero **pagar mi reserva de forma online utilizando distintos métodos de pago (tarjeta de crédito o débito)**, para **confirmar los asientos incluidos en mi reserva sin tener que coordinar transferencias manuales**.
 
 **Actividad TO-BE asociada:** Pagar viaje.
 
 **Criterios de aceptación:**
 - CA1: Dado que el cliente ha completado sus datos de reserva, cuando confirma el registro, entonces el sistema lo redirige de forma segura a una pasarela de pago externa.
-- CA2: Dado que el cliente realiza la transacción en la pasarela, cuando el pago es aprobado, entonces el sistema actualiza automáticamente el estado de la reserva a "Pagada" y descuenta definitivamente el cupo del viaje.
-- CA3: Dado que el cliente intenta pagar, cuando la pasarela de pago rechaza la transacción o el usuario cancela la operación, entonces el sistema muestra un mensaje de error y mantiene el cupo retenido solo por un tiempo límite de 8 minutos antes de liberarlo.
+- CA2: Dado que la reserva está pendiente de pago y todas sus retenciones siguen vigentes, cuando la pasarela aprueba el pago, entonces el sistema actualiza la reserva a "Pagada" y confirma todos sus asientos sin descontar cupos nuevamente.
+- CA3: Dado que la reserva está pendiente de pago, cuando la pasarela rechaza la transacción o el usuario cancela la operación, entonces el sistema informa que el pago no fue completado y conserva los vencimientos originales de los asientos, sin reiniciar sus plazos.
+- CA4: Dado que existe una reserva pendiente de pago, cuando vence la retención de cualquiera de sus asientos sin pago aprobado, entonces el sistema marca toda la reserva como "Vencida", libera todos sus asientos y restituye sus cupos.
+- CA5: Dado que una reserva ha vencido, cuando el sistema recibe una aprobación de pago para ella, entonces registra el pago aprobado y solicita automáticamente a la pasarela la devolución del monto completo, manteniendo la reserva vencida y sin volver a ocupar sus asientos.
+- CA6: Dado que se solicitó la devolución de un pago aprobado para una reserva vencida, cuando la pasarela confirma la devolución completa, entonces el sistema actualiza el pago a "Devuelto" e informa al pasajero que su reserva venció y el monto fue devuelto.

@@ -24,7 +24,7 @@
           <dt>Costo</dt>
           <dd><%= formatearMonto(viaje.costo) %></dd>
         </dl>
-        <p class="cupos">Cupos disponibles: <%= viaje.cuposDisponibles %></p>
+        <p class="cupos">Cupos disponibles: <%= viaje.cuposDisponibles %> de <%= viaje.capacidad %></p>
         <a class="boton" href="/cartelera/<%= viaje.idViaje %>">Ver detalle</a>
       </article>
     <% }); %>

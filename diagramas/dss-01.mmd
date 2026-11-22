@@ -4,16 +4,46 @@ sequenceDiagram
     participant Sistema
     participant Correo as Servicio de correo (externo)
 
-    Pasajero->>Sistema: Selecciona un asiento del viaje
-    Sistema->>Sistema: Verifica disponibilidad del asiento
+    loop Por cada asiento que el cliente desea seleccionar
+        Pasajero->>Sistema: Selecciona un asiento del viaje
+        Sistema->>Sistema: Verifica disponibilidad del asiento
+        alt Asiento disponible
+            Sistema->>Sistema: Retiene el asiento por 8 minutos desde la selección
+            Sistema->>Sistema: Guarda vencimiento en Asiento y descuenta un cupo
+            Sistema-->>Pasajero: Confirma la retención del asiento
+        else Asiento retenido por otro cliente o reservado
+            Sistema-->>Pasajero: Informa que el asiento no está disponible
+        end
+    end
 
-    alt Asiento disponible
-        Sistema->>Sistema: Bloquea el asiento temporalmente
-        Sistema-->>Pasajero: Confirma que el asiento quedó retenido
-        Pasajero->>Sistema: Ingresa sus datos y confirma la reserva
-        Sistema->>Sistema: Registra la reserva y asocia al pasajero con el viaje
-        Sistema->>Correo: Solicita notificación de registro exitoso
-        Correo-->>Pasajero: Envía correo de registro exitoso
-    else Asiento bloqueado temporalmente o reservado
-        Sistema-->>Pasajero: Informa que el asiento no está disponible
+    Pasajero->>Sistema: Ingresa los datos de un pasajero por asiento e indica si es ida y vuelta
+    opt Reserva de ida y vuelta
+        Sistema-->>Pasajero: Solicita el lugar de regreso obligatorio
+        Pasajero->>Sistema: Ingresa el lugar de regreso
+    end
+
+    Pasajero->>Sistema: Confirma la operación
+    Sistema->>Sistema: Valida los datos y las retenciones de todos los asientos
+
+    alt Datos válidos y todos los asientos retenidos para este cliente
+        Sistema->>Sistema: Registra una única reserva pendiente de pago con un único código
+        Sistema->>Sistema: Guarda modalidad y lugar de regreso cuando corresponda
+        Sistema->>Sistema: Crea un DetalleReserva por asiento con su pasajero
+        Note over Sistema: Conserva los vencimientos originales y no vuelve a descontar cupos
+        Sistema-->>Pasajero: Confirma la reserva e informa su código
+
+        loop Por cada pasajero de la reserva
+            Sistema->>Correo: Solicita notificación de registro exitoso
+            Correo-->>Pasajero: Envía correo al pasajero correspondiente
+        end
+
+        opt Consulta de la reserva registrada
+            Pasajero->>Sistema: Consulta la reserva mediante su código
+            Sistema-->>Pasajero: Muestra viaje, asientos, pasajeros, estado y modalidad
+            Note over Sistema: Incluye el lugar de regreso si es ida y vuelta
+        end
+    else Algún asiento no está disponible para el cliente o su retención venció
+        Sistema-->>Pasajero: Impide el registro completo y solicita revisar la selección
+    else Datos obligatorios incompletos o inválidos
+        Sistema-->>Pasajero: Impide el registro e indica los campos que debe completar o corregir
     end

@@ -32,7 +32,7 @@ describe('HU-01 · Cartelera de viajes', () => {
     const respuesta = await request(app).get('/cartelera').expect(200);
 
     expect(respuesta.text).toContain('Concierto Rock');
-    expect(respuesta.text).toContain('Cupos disponibles: 12');
+    expect(respuesta.text).toContain('Cupos disponibles: 12 de 17');
     expect(respuesta.text).toContain('18:30');
     expect(respuesta.text).toContain('02:00');
     expect(respuesta.text).toContain('Plaza de la Ciudad');
@@ -79,7 +79,7 @@ describe('HU-01 · Cartelera de viajes', () => {
       .expect(200);
 
     expect(respuesta.text).toContain('Concierto Jazz');
-    expect(respuesta.text).toContain('Cupos disponibles: 7');
+    expect(respuesta.text).toContain('Cupos disponibles: 7 de 17');
     expect(respuesta.text).toContain('Plaza de la Ciudad');
   });
 
@@ -114,7 +114,9 @@ describe('HU-01 · Cartelera de viajes', () => {
       .expect(200);
 
     expect(respuesta.text).toContain('Concierto lleno');
-    expect(respuesta.text).toContain('Cupos disponibles: 0');
+    expect(respuesta.text).toContain('Cupos disponibles: 0 de 17');
+    expect(respuesta.text).toContain('No hay cupos disponibles para este viaje.');
+    expect(respuesta.text).not.toContain('Reservar asiento');
   });
 
   it('HU-01 · Redirección de la raíz a la cartelera', async () => {

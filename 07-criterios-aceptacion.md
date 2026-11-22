@@ -27,18 +27,22 @@ Característica: Consultar cartelera y disponibilidad de viajes
  
 ## HU-02 — Registrar reserva y pasajero
 
-Como pasajero, quiero ingresar mis datos para reservar un asiento en el viaje seleccionado, para retener mi cupo temporalmente
+Como pasajero, quiero seleccionar uno o varios asientos del mismo viaje e ingresar los datos de un pasajero por asiento, para registrar todos los cupos seleccionados en una única reserva.
 
 ```gherkin
-Característica: Registrar reserva y retener cupo
+Característica: Registrar una reserva y retener sus asientos
 
-  Escenario: Selección de cupo disponible y confirmación de reserva
-    Dado que el pasajero ha seleccionado un viaje con cupos disponibles, 
-    Cuando ingresa sus datos y confirma su selección, 
-    Entonces el sistema retiene dicho cupo temporalmente
-    Y no puede ser seleccionado por otros pasajeros
-    Y asocia al pasajero al viaje seleccionado
-    Y envía automáticamente una notificación mediante un servicio de correos externo indicando que el registro fue exitoso.
+  Escenario: Retención de un asiento al seleccionarlo
+    Dado que un asiento del viaje está disponible,
+    Cuando el cliente lo selecciona,
+    Entonces el sistema lo retiene para ese cliente durante 8 minutos desde la selección y registra su vencimiento en el asiento
+    Y bloquea su selección por otros clientes mientras la retención esté vigente.
+
+  Escenario: Confirmación de una reserva con uno o varios asientos
+    Dado que el cliente seleccionó uno o varios asientos del mismo viaje con retenciones vigentes y completó los datos obligatorios, incluyendo un pasajero por asiento,
+    Cuando confirma la operación,
+    Entonces el sistema crea una única reserva pendiente de pago con un solo código, asociada al viaje y a todos los asientos con sus respectivos pasajeros, sin reiniciar las retenciones
+    Y solicita al servicio de correos externo una notificación de registro exitoso para cada pasajero.
 
   Escenario: Selección de cupo no disponible
     Dado que los cupos de un viaje se encuentran bloqueados temporalmente o agotados,
@@ -46,10 +50,37 @@ Característica: Registrar reserva y retener cupo
     Entonces el sistema impedirá el proceso
     Y le mostrará un mensaje señalando que no hay cupos disponibles.
 
-  Escenario: Consultar estado de la reserva registrada
-    Dado que el pasajero ha registrado exitosamente una reserva,
-    Cuando consulta los datos de su reserva,
-    Entonces el sistema muestra que se encuentra asociado al viaje seleccionado en estado pendiente de pago.
+  Escenario: Consultar una reserva registrada
+    Dado que existe una reserva pendiente de pago con uno o varios asientos,
+    Cuando el cliente la consulta mediante su código,
+    Entonces el sistema muestra el viaje, los asientos con sus respectivos pasajeros, el estado y si la reserva incluye ida y vuelta
+    Y muestra el lugar de regreso ingresado cuando la reserva es de ida y vuelta.
+
+  Escenario: Rechazo de la operación por pérdida de disponibilidad
+    Dado que el cliente seleccionó varios asientos y alguno dejó de estar disponible para él o su retención venció,
+    Cuando intenta confirmar la operación,
+    Entonces el sistema impide crear la reserva completa, sin registrar parcialmente los asientos
+    Y solicita al cliente revisar su selección.
+
+  Escenario: Vencimiento de una reserva con varios asientos
+    Dado que existe una reserva pendiente de pago con varios asientos,
+    Cuando vence la retención de cualquiera de ellos sin haberse aprobado el pago,
+    Entonces el sistema marca toda la reserva como vencida y libera todos sus asientos.
+
+  Escenario: Registro del lugar de regreso
+    Dado que el cliente indica que su reserva es de ida y vuelta,
+    Cuando completa el lugar de regreso y confirma con los demás datos válidos y las retenciones vigentes,
+    Entonces el sistema registra la reserva incluyendo el lugar de regreso ingresado.
+
+  Escenario: Falta el lugar de regreso en una reserva de ida y vuelta
+    Dado que el cliente indicó que su reserva es de ida y vuelta y completó los demás datos válidos con retenciones vigentes,
+    Cuando intenta confirmarla sin ingresar el lugar de regreso,
+    Entonces el sistema impide el registro e indica que el lugar de regreso es obligatorio.
+
+  Escenario: Reserva sin ida y vuelta
+    Dado que el cliente indica que su reserva no incluye ida y vuelta,
+    Cuando confirma con los demás datos válidos y las retenciones vigentes,
+    Entonces el sistema registra la reserva sin exigir un lugar de regreso.
 ```
    
 ## HU-03 — Crear un viaje en el sistema

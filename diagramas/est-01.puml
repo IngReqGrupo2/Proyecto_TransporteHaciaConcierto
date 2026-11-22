@@ -9,22 +9,36 @@ skinparam state {
 }
 hide empty description
 
-[*] --> Pendiente : registrarReserva\n[cupo disponible y datos válidos] /\nretener asiento, asociar pasajero y notificar
-
 state "Pendiente de pago" as Pendiente
 state "Pagada" as Pagada
 state "Vencida" as Vencida
 
-Pendiente --> Pagada : pagoAprobado\n[retención vigente] /\nconfirmar reserva y cupo retenido
-Pendiente --> Pendiente : pagoRechazado\n[retención vigente] / informar rechazo
-Pendiente --> Pendiente : pagoCancelado\n[retención vigente] / informar cancelación
-Pendiente --> Vencida : vencerRetencion\n[8 minutos sin pago aprobado] /\nliberar cupo
+[*] --> Pendiente : registrarReserva\n[datos obligatorios válidos y todas las retenciones vigentes para el cliente] /\nregistrar una reserva con código único y sus detalles,\nasociar el viaje y solicitar notificación a cada pasajero
+
+Pendiente --> Pagada : pagoAprobado\n[pago aprobado por la pasarela y todas las retenciones vigentes] /\nconfirmar la reserva y todos sus asientos sin descontar cupos nuevamente
+
+Pendiente --> Pendiente : pagoRechazado\n[todas las retenciones vigentes] /\ninformar rechazo y conservar sus vencimientos originales
+
+Pendiente --> Pendiente : pagoCancelado\n[todas las retenciones vigentes] /\ninformar cancelación y conservar sus vencimientos originales
+
+Pendiente --> Vencida : vencerRetencion\n[vence cualquier retención sin pago aprobado] /\nmarcar toda la reserva como vencida,\nliberar todos sus asientos y restituir sus cupos
 
 Pagada --> [*]
 Vencida --> [*]
 
+note left of Pendiente
+  Cada asiento guarda su vencimiento:
+  8 minutos desde su selección en DSS-01.
+  Registrar la reserva no reinicia los plazos
+  ni vuelve a descontar cupos.
+  El primer vencimiento de sus asientos
+  provoca el vencimiento de toda la reserva.
+end note
+
 note right of Pagada
-  No se vuelve a descontar el cupo:
-  ya quedó retenido en DSS-01.
+  El pago confirma todos los asientos.
+  Los cupos ya se descontaron al seleccionarlos.
+  Las retenciones dejan de provocar vencimiento
+  una vez que la reserva está pagada.
 end note
 @enduml

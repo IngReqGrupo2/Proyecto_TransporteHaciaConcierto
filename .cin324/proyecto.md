@@ -62,6 +62,11 @@
   - Se registra `idaYVuelta` y se exige `lugarRegreso` únicamente si incluye ida y vuelta.
   - Se mantienen los datos obligatorios del pasajero, su identificación por RUT y el Servicio de correo simulado con una notificación por pasajero.
   - Ficha y especificaciones confirmadas; implementación de `ajuste-hu-02-reserva-multiple` autorizada explícitamente por el estudiante y completada. Verificación: 89 pruebas y tipos correctos; recorrido HTTP con dos clientes en SQLite temporal en memoria. Pendiente de aceptación del sistema.
+- 2026-11-22, revalidación de HU-01 confirmada por el estudiante:
+  - Se muestran la `capacidad` y los `cuposDisponibles` en la cartelera y en el detalle del viaje.
+  - No se agrega al Gherkin un escenario de viaje inexistente o no publicado porque la historia no ofrece filtrado de viajes.
+  - La implementación actual muestra solo `cuposDisponibles`; queda pendiente el ajuste para mostrar también `capacidad`.
+  - Ficha confirmada: `.cin324/historias/HU-01.md`.
 
 ## Stack (se define una sola vez)
 - Lenguaje y framework: TypeScript + Express + EJS
@@ -74,7 +79,7 @@
 ## Historias
 | Historia | Estado | Cambio de OpenSpec | Fecha | Observaciones |
 |----------|--------|--------------------|-------|----------------|
-| HU-01 | generada, pendiente de validación | `hu-01-consultar-cartelera` | 2026-11-14 | Consultar cartelera (CU-01). Implementada; 15 pruebas pasan. Ficha `.cin324/historias/HU-01.md` |
+| HU-01 | validada; pendiente de ajuste (mostrar capacidad) | `hu-01-consultar-cartelera` | 2026-11-22 | Consultar cartelera (CU-01). Revalidada: mostrar `capacidad` y `cuposDisponibles`. Implementación actual muestra solo cupos. Ficha `.cin324/historias/HU-01.md` |
 | HU-02 | ajuste implementado, pendiente de validación del sistema | `hu-02-registrar-reserva` (versión anterior); `ajuste-hu-02-reserva-multiple` (vigente) | 2026-11-22 | Reserva múltiple, retenciones desde selección, vencimiento completo y modalidad de regreso. Nueve escenarios vigentes cubiertos; 89 pruebas y tipos correctos. Migración conserva reservas anteriores. Verificación `.cin324/validaciones/VER-HU-02-implementacion.md`; guía en README. |
 | HU-03 | generada; ajuste de fechas implementado, pendiente de validación | `hu-03-crear-viaje`, `ajuste-hu-03-fechas` | 2026-11-18 | Crear viaje (CU-04). Patente solo formato actual `AABB11`. Ajuste OBS-1: fechas reales del calendario, no anteriores a hoy y máximo 31/12/(año+100). 43 pruebas pasan. Ficha `.cin324/historias/HU-03.md` |
 | HU-04 | pendiente | — | — | Visualizar pasajeros (CU-05) |
@@ -83,8 +88,10 @@
 ## Validaciones
 | Historia | Informe | Estado | Fecha |
 |----------|---------|--------|-------|
+| HU-01 | `.cin324/historias/HU-01.md` | confirmada (revalidación) | 2026-11-22 |
 | HU-02 | `.cin324/historias/HU-02.md` | ficha y especificaciones confirmadas; implementación autorizada; no equivale a aceptación del sistema | 2026-11-22 |
 | HU-02 | `.cin324/validaciones/VER-HU-02-implementacion.md` | verificación técnica correcta; validación de aceptación del estudiante pendiente | 2026-11-22 |
+
 
 ## Cambios posteriores
 | Cambio | Historia afectada | Motivo | Fecha |

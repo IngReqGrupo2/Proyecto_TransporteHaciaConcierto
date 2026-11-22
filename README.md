@@ -70,8 +70,8 @@ Al abrir la aplicación verás la cartelera con el rol de demostración Pasajero
 | Método y ruta | Qué hace |
 |---------------|----------|
 | `GET /` | Redirige a `/cartelera` |
-| `GET /cartelera` | Lista los viajes publicados con cupos disponibles; si no hay, muestra «No hay viajes disponibles» |
-| `GET /cartelera/:idViaje` | Muestra el detalle y los cupos del viaje; responde 404 si no existe o no está publicado |
+| `GET /cartelera` | Lista los viajes publicados con cupos disponibles y muestra la capacidad y los cupos de cada uno; si no hay, muestra «No hay viajes disponibles» |
+| `GET /cartelera/:idViaje` | Muestra el detalle, la capacidad y los cupos del viaje; si no tiene cupos, muestra «No hay cupos disponibles para este viaje.»; responde 404 si no existe o no está publicado |
 | `GET /cartelera/:idViaje/reservar` | Muestra asientos libres y la selección retenida del cliente, con un formulario de pasajero por asiento; permite continuar con retenciones propias aunque no queden cupos libres |
 | `POST /cartelera/:idViaje/retenciones` | Recibe `idAsiento`, retiene el asiento para el cliente durante 8 minutos y descuenta un cupo; redirige con 303 al formulario o responde 400 con el error |
 | `POST /cartelera/:idViaje/reservar` | Registra una única reserva «Pendiente de pago» con sus detalles y solicita correo simulado por pasajero, sin renovar plazos ni descontar cupos de nuevo; responde 201 o 400 |

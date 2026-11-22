@@ -110,6 +110,7 @@ interface FilaReserva {
   asientoNumero: number;
   idEvento: number;
   idVehiculo: number;
+  descripcion: string | null;
   fechaViaje: string;
   horaSalida: string;
   horaRegreso: string;
@@ -153,6 +154,7 @@ function mapearDetalle(fila: FilaReserva): ReservaDetalle {
       idViaje: fila.idViaje,
       idEvento: fila.idEvento,
       idVehiculo: fila.idVehiculo,
+      descripcion: fila.descripcion,
       fechaViaje: fila.fechaViaje,
       horaSalida: fila.horaSalida,
       horaRegreso: fila.horaRegreso,
@@ -217,6 +219,7 @@ export class ReservaRepositorio {
           a.numero AS asientoNumero,
           v.id_evento AS idEvento,
           v.id_vehiculo AS idVehiculo,
+          v.descripcion AS descripcion,
           v.fecha_viaje AS fechaViaje,
           v.hora_salida AS horaSalida,
           v.hora_regreso AS horaRegreso,

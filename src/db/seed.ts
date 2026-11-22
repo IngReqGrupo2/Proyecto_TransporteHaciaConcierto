@@ -19,6 +19,7 @@ interface ViajeEjemplo {
   idViaje: string;
   idEvento: number;
   idVehiculo: number;
+  descripcion: string | null;
   fechaViaje: string;
   horaSalida: string;
   horaRegreso: string;
@@ -69,6 +70,8 @@ const VIAJES: ViajeEjemplo[] = [
     idViaje: 'V-001',
     idEvento: 1,
     idVehiculo: 1,
+    descripcion:
+      'Traslado al Concierto Rock en el Parque con encuentro en la Plaza de la Ciudad.',
     fechaViaje: '2027-01-15',
     horaSalida: '18:30',
     horaRegreso: '02:00',
@@ -84,6 +87,8 @@ const VIAJES: ViajeEjemplo[] = [
     idViaje: 'V-002',
     idEvento: 2,
     idVehiculo: 2,
+    descripcion:
+      'Viaje al Festival de Verano con salida desde el Terminal de Buses.',
     fechaViaje: '2027-02-20',
     horaSalida: '17:00',
     horaRegreso: '01:30',
@@ -99,6 +104,7 @@ const VIAJES: ViajeEjemplo[] = [
     idViaje: 'V-003',
     idEvento: 3,
     idVehiculo: 1,
+    descripcion: 'Traslado a la Noche de Jazz desde la Estación Central.',
     fechaViaje: '2027-03-05',
     horaSalida: '19:00',
     horaRegreso: '23:30',
@@ -130,14 +136,15 @@ export function cargarDatosEjemplo(db: BaseDeDatos): void {
   `);
   const guardarViaje = db.prepare(`
     INSERT INTO viaje (
-      id_viaje, id_evento, id_vehiculo, fecha_viaje, hora_salida, hora_regreso,
-      lugar_encuentro, costo, capacidad, cupos_disponibles, estado,
-      conductor_asignado, asistente_asignado
+      id_viaje, id_evento, id_vehiculo, descripcion, fecha_viaje, hora_salida,
+      hora_regreso, lugar_encuentro, costo, capacidad, cupos_disponibles,
+      estado, conductor_asignado, asistente_asignado
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id_viaje) DO UPDATE SET
       id_evento = excluded.id_evento,
       id_vehiculo = excluded.id_vehiculo,
+      descripcion = excluded.descripcion,
       fecha_viaje = excluded.fecha_viaje,
       hora_salida = excluded.hora_salida,
       hora_regreso = excluded.hora_regreso,
@@ -171,6 +178,7 @@ export function cargarDatosEjemplo(db: BaseDeDatos): void {
         viaje.idViaje,
         viaje.idEvento,
         viaje.idVehiculo,
+        viaje.descripcion,
         viaje.fechaViaje,
         viaje.horaSalida,
         viaje.horaRegreso,

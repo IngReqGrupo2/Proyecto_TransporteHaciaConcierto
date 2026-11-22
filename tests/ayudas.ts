@@ -47,6 +47,7 @@ export function crearViaje(overrides: Partial<Viaje> = {}): Viaje {
     idViaje: 'V-001',
     idEvento: 1,
     idVehiculo: 1,
+    descripcion: null,
     fechaViaje: '2027-01-15',
     horaSalida: '18:30',
     horaRegreso: '02:00',
@@ -88,15 +89,16 @@ export function insertarViaje(db: BaseDeDatos, viaje: Viaje): void {
 
   db.prepare(`
     INSERT INTO viaje (
-      id_viaje, id_evento, id_vehiculo, fecha_viaje, hora_salida, hora_regreso,
-      lugar_encuentro, costo, capacidad, cupos_disponibles, estado,
-      conductor_asignado, asistente_asignado
+      id_viaje, id_evento, id_vehiculo, descripcion, fecha_viaje, hora_salida,
+      hora_regreso, lugar_encuentro, costo, capacidad, cupos_disponibles,
+      estado, conductor_asignado, asistente_asignado
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     viaje.idViaje,
     viaje.idEvento,
     viaje.idVehiculo,
+    viaje.descripcion,
     viaje.fechaViaje,
     viaje.horaSalida,
     viaje.horaRegreso,

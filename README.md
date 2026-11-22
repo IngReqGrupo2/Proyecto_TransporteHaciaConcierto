@@ -39,7 +39,7 @@ El script es idempotente y carga tres eventos, dos vehículos y tres viajes:
 | `V-002` | `BJYR68` · Hyundai H1 (10) | Borrador | 10 | No aparece; su detalle responde 404 |
 | `V-003` | `LKPW42` · Mercedes-Benz Sprinter (17) | Borrador | 17 | No aparece; su detalle responde 404 |
 
-Cada viaje genera sus asientos al ser creado y el seed también los crea: `V-001` tiene 17 asientos, `V-002` tiene 10 y `V-003` tiene 17.
+Cada viaje genera sus asientos al ser creado y el seed también los crea: `V-001` tiene 17 asientos, `V-002` tiene 10 y `V-003` tiene 17. Los tres viajes de ejemplo incluyen una descripción.
 
 ## Ejecutar
 
@@ -66,7 +66,8 @@ No hay autenticación real: la cabecera indica «Rol de demostración: Pasajero�
 
 ### Validaciones al crear un viaje
 
-- Todos los campos del formulario son obligatorios; si falta alguno, se marca cada campo faltante y no se registra nada.
+- Todos los campos del formulario son obligatorios, excepto la descripción; si falta uno obligatorio, se marca cada campo faltante y no se registra nada.
+- La descripción es opcional: si se ingresa, se guarda con el viaje; si queda vacía o solo con espacios, el viaje se crea sin descripción (`NULL`).
 - El costo debe ser un monto numérico mayor que cero.
 - La patente debe tener el formato chileno actual: cuatro letras y dos dígitos (`AABB11`, por ejemplo `LKPW42`).
 - Las fechas del evento y del viaje deben existir en el calendario, no ser anteriores a hoy y no superar el 31 de diciembre del año actual más 100 años.
@@ -95,7 +96,7 @@ npm test
 npm run typecheck
 ```
 
-Las pruebas usan una base SQLite en memoria y cubren los escenarios de HU-01, HU-02 y HU-03 (campos faltantes y señalados, costo inválido, patente válida e inválida, fechas inválidas, nombres con al menos una letra, fecha del viaje no posterior a la del evento, capacidad, vehículo reutilizado, identificador consecutivo, reserva de un asiento disponible, rechazo de un asiento ocupado o de un viaje sin cupos, consulta de la reserva, reutilización del pasajero por RUT, retención de 8 minutos y unicidad de la reserva vigente), además de las migraciones y los datos de ejemplo.
+Las pruebas usan una base SQLite en memoria y cubren los escenarios de HU-01, HU-02 y HU-03 (campos faltantes y señalados, costo inválido, patente válida e inválida, fechas inválidas, nombres con al menos una letra, fecha del viaje no posterior a la del evento, descripción ingresada y vacía, capacidad, vehículo reutilizado, identificador consecutivo, reserva de un asiento disponible, rechazo de un asiento ocupado o de un viaje sin cupos, consulta de la reserva, reutilización del pasajero por RUT, retención de 8 minutos y unicidad de la reserva vigente), además de las migraciones y los datos de ejemplo.
 
 ## Estructura
 
@@ -105,7 +106,7 @@ src/
   server.ts               # arranque del servidor
   db/
     conexion.ts           # conexión SQLite y migraciones
-    migrations/           # 001_evento, 002_viaje, 003_vehiculo, 004_reserva
+    migrations/           # 001_evento, 002_viaje, 003_vehiculo, 004_reserva, 005_descripcion
     seed.ts               # datos de ejemplo idempotentes
   dominio/
     viaje.ts              # tipos y repositorio de Evento/Vehiculo/Viaje

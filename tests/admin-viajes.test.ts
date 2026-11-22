@@ -16,6 +16,7 @@ function datos(overrides: Record<string, string> = {}) {
     horaSalida: '18:30',
     horaRegreso: '02:00',
     lugarEncuentro: 'Plaza de la Ciudad',
+    descripcion: 'Descripción de prueba',
     costo: '15000',
     conductor: 'Carlos Muñoz',
     asistente: 'Ana Torres',
@@ -93,6 +94,46 @@ describe('HU-03 · Crear viaje', () => {
     const cartelera = await request(aplicacion).get('/cartelera').expect(200);
     expect(cartelera.text).toContain('Concierto Rock en el Parque');
     expect(cartelera.text).toContain('Cupos disponibles: 17');
+  });
+
+  it('HU-03 · Descripción ingresada al crear el viaje', async () => {
+    const aplicacion = app();
+
+    const respuesta = await request(aplicacion)
+      .post('/admin/viajes')
+      .type('form')
+      .send(datos({ descripcion: '  Llevar agua y abrigo  ' }))
+      .expect(201);
+
+    expect(respuesta.text).toContain('Viaje creado');
+    const fila = db
+      .prepare('SELECT descripcion FROM viaje WHERE id_viaje = ?')
+      .get('V-001') as { descripcion: string | null } | undefined;
+    expect(fila?.descripcion).toBe('Llevar agua y abrigo');
+  });
+
+  it('HU-03 · Descripción vacía al crear el viaje', async () => {
+    const aplicacion = app();
+
+    const sinDescripcion: Record<string, string> = datos();
+    delete sinDescripcion.descripcion;
+
+    await request(aplicacion)
+      .post('/admin/viajes')
+      .type('form')
+      .send(sinDescripcion)
+      .expect(201);
+
+    await request(aplicacion)
+      .post('/admin/viajes')
+      .type('form')
+      .send(datos({ descripcion: '   ' }))
+      .expect(201);
+
+    const filas = db
+      .prepare('SELECT descripcion FROM viaje ORDER BY id_viaje')
+      .all() as Array<{ descripcion: string | null }>;
+    expect(filas.map((fila) => fila.descripcion)).toEqual([null, null]);
   });
 
   it('HU-03 · Faltan campos para crear el viaje', async () => {

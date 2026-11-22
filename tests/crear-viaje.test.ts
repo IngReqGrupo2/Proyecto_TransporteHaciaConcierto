@@ -20,6 +20,7 @@ function datos(overrides: Partial<DatosNuevoViaje> = {}): DatosNuevoViaje {
     horaSalida: '18:30',
     horaRegreso: '02:00',
     lugarEncuentro: 'Plaza de la Ciudad',
+    descripcion: 'Descripción de prueba',
     costo: '15000',
     conductor: 'Carlos Muñoz',
     asistente: 'Ana Torres',
@@ -249,6 +250,31 @@ describe('ViajeRepositorio · crearViaje', () => {
 
     expect(viaje.eventoFecha).toBe('2027-03-20');
     expect(viaje.fechaViaje).toBe('2027-03-20');
+  });
+
+  it('guarda la descripción recortada y convierte la vacía en null', () => {
+    db = crearBaseDePrueba();
+    const repositorio = new ViajeRepositorio(db);
+
+    const conDescripcion = repositorio.crearViaje(
+      datos({ descripcion: '  Llevar agua y abrigo  ' }),
+    );
+    expect(conDescripcion.descripcion).toBe('Llevar agua y abrigo');
+
+    const sinDescripcion = repositorio.crearViaje(
+      datos({
+        eventoNombre: 'Otro concierto',
+        eventoFecha: '2027-02-20',
+        fechaViaje: '2027-02-20',
+        descripcion: '   ',
+      }),
+    );
+    expect(sinDescripcion.descripcion).toBeNull();
+
+    const fila = db
+      .prepare('SELECT descripcion FROM viaje WHERE id_viaje = ?')
+      .get(sinDescripcion.idViaje) as { descripcion: string | null };
+    expect(fila.descripcion).toBeNull();
   });
 });
 

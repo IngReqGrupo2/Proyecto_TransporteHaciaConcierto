@@ -17,6 +17,7 @@ export interface Viaje {
   idViaje: string;
   idEvento: number;
   idVehiculo: number;
+  descripcion: string | null;
   fechaViaje: string;
   horaSalida: string;
   horaRegreso: string;
@@ -43,6 +44,7 @@ export interface DatosNuevoViaje {
   horaSalida: string;
   horaRegreso: string;
   lugarEncuentro: string;
+  descripcion: string;
   costo: string;
   conductor: string;
   asistente: string;
@@ -62,7 +64,9 @@ export class ErrorValidacion extends Error {
 
 export const CAPACIDAD_MAXIMA = 17;
 
-const ETIQUETAS: Record<keyof DatosNuevoViaje, string> = {
+type CampoObligatorio = Exclude<keyof DatosNuevoViaje, 'descripcion'>;
+
+const ETIQUETAS: Record<CampoObligatorio, string> = {
   eventoNombre: 'nombre del evento',
   eventoFecha: 'fecha del evento',
   fechaViaje: 'fecha del viaje',
@@ -77,7 +81,7 @@ const ETIQUETAS: Record<keyof DatosNuevoViaje, string> = {
 };
 
 const CAMPOS_OBLIGATORIOS = Object.keys(ETIQUETAS) as Array<
-  keyof DatosNuevoViaje
+  CampoObligatorio
 >;
 
 const PATENTE_ACTUAL = /^[A-Z]{4}[0-9]{2}$/;
@@ -157,6 +161,7 @@ export function normalizarDatosNuevoViaje(
     horaSalida: datos.horaSalida.trim(),
     horaRegreso: datos.horaRegreso.trim(),
     lugarEncuentro: datos.lugarEncuentro.trim(),
+    descripcion: datos.descripcion.trim(),
     costo: datos.costo.trim(),
     conductor: datos.conductor.trim(),
     asistente: datos.asistente.trim(),
@@ -169,6 +174,7 @@ const COLUMNAS_VIAJE = `
   v.id_viaje AS idViaje,
   v.id_evento AS idEvento,
   v.id_vehiculo AS idVehiculo,
+  v.descripcion AS descripcion,
   v.fecha_viaje AS fechaViaje,
   v.hora_salida AS horaSalida,
   v.hora_regreso AS horaRegreso,
@@ -215,6 +221,7 @@ export class ViajeRepositorio {
 
   crearViaje(datos: DatosNuevoViaje): ViajeConEvento {
     const limpios = normalizarDatosNuevoViaje(datos);
+    const descripcion = limpios.descripcion === '' ? null : limpios.descripcion;
 
     const faltantes = CAMPOS_OBLIGATORIOS.filter(
       (campo) => limpios[campo] === '',
@@ -329,16 +336,17 @@ export class ViajeRepositorio {
       this.db
         .prepare(`
           INSERT INTO viaje (
-            id_viaje, id_evento, id_vehiculo, fecha_viaje, hora_salida,
-            hora_regreso, lugar_encuentro, costo, capacidad,
+            id_viaje, id_evento, id_vehiculo, descripcion, fecha_viaje,
+            hora_salida, hora_regreso, lugar_encuentro, costo, capacidad,
             cupos_disponibles, estado, conductor_asignado, asistente_asignado
           )
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Publicado', ?, ?)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Publicado', ?, ?)
         `)
         .run(
           idViaje,
           idEvento,
           vehiculo.idVehiculo,
+          descripcion,
           limpios.fechaViaje,
           limpios.horaSalida,
           limpios.horaRegreso,

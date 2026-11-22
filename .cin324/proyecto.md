@@ -59,6 +59,12 @@
   - No se agrega al Gherkin un escenario de viaje inexistente o no publicado porque la historia no ofrece filtrado de viajes.
   - La implementación actual muestra solo `cuposDisponibles`; queda pendiente el ajuste para mostrar también `capacidad`.
   - Ficha confirmada: `.cin324/historias/HU-01.md`.
+- 2026-11-22, validación de HU-03 confirmada por el estudiante:
+  - Se confirmaron la actividad TO-BE, CU-04, las entidades, la transición a «Publicado» y el flujo de interacción.
+  - `descripcion` es un campo opcional de `Viaje`: se alineó `08-modelo-dominio.md` con el `.puml`; no se modifica la historia ni el Gherkin por este campo (decisión 4B). La implementación actual aún no lo captura.
+  - Se actualizaron los mensajes de fecha del Gherkin de HU-03 al texto preciso de la implementación (decisión 3A).
+  - Las validaciones de patente, costo y capacidad quedan registradas en la ficha como decisiones, sin cambios en `CA1` ni en el Gherkin (decisión 4B).
+  - Ficha confirmada: `.cin324/historias/HU-03.md`.
 
 ## Stack (se define una sola vez)
 - Lenguaje y framework: TypeScript + Express + EJS
@@ -73,7 +79,7 @@
 |----------|--------|--------------------|-------|----------------|
 | HU-01 | validada; pendiente de ajuste (mostrar capacidad) | `hu-01-consultar-cartelera` | 2026-11-22 | Consultar cartelera (CU-01). Revalidada: mostrar `capacidad` y `cuposDisponibles`. Implementación actual muestra solo cupos. Ficha `.cin324/historias/HU-01.md` |
 | HU-02 | generada, pendiente de validación | `hu-02-registrar-reserva` | 2026-11-19 | Registrar reserva y pasajero (CU-02, DSS-01, EST-01). Una reserva = un asiento = un pasajero. 66 pruebas pasan. Ficha `.cin324/historias/HU-02.md` |
-| HU-03 | generada; ajuste de fechas implementado, pendiente de validación | `hu-03-crear-viaje`, `ajuste-hu-03-fechas` | 2026-11-18 | Crear viaje (CU-04). Patente solo formato actual `AABB11`. Ajuste OBS-1: fechas reales del calendario, no anteriores a hoy y máximo 31/12/(año+100). 43 pruebas pasan. Ficha `.cin324/historias/HU-03.md` |
+| HU-03 | lista para especificar; ajuste de descripción pendiente | `hu-03-crear-viaje`, `ajuste-hu-03-fechas`; pendiente `ajuste-hu-03-descripcion` | 2026-11-22 | Crear viaje (CU-04). Patente solo formato actual `AABB11`. Fechas validadas. Validada el 2026-11-22: `descripcion` opcional y ajustes documentales; ajuste de descripción pendiente de implementar. Ficha `.cin324/historias/HU-03.md` |
 | HU-04 | pendiente | — | — | Visualizar pasajeros (CU-05) |
 | HU-05 | pendiente | — | — | Pagar reserva (CU-03, DSS-02, EST-01/02) |
 
@@ -82,6 +88,7 @@
 |----------|---------|--------|-------|
 | HU-01 | `.cin324/historias/HU-01.md` | confirmada (revalidación) | 2026-11-22 |
 | HU-02 | `.cin324/historias/HU-02.md` | confirmada (validación directa) | 2026-11-19 |
+| HU-03 | `.cin324/historias/HU-03.md` | confirmada | 2026-11-22 |
 
 ## Cambios posteriores
 | Cambio | Historia afectada | Motivo | Fecha |

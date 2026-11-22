@@ -13,13 +13,15 @@ Archivo fuente: [`./diagramas/est-01.puml`](./diagramas/est-01.puml)
 
 | Estado origen | Evento | Guarda | Acción | Estado destino |
 |---|---|---|---|---|
-| Inicial | `registrarReserva` | Asiento disponible y datos del pasajero válidos | Retener temporalmente el asiento, asociar el pasajero al viaje, registrar la reserva y solicitar notificación al servicio de correo. | Pendiente de pago |
-| Pendiente de pago | `pagoAprobado` | Pago aprobado por la pasarela y retención vigente | Actualizar la reserva a Pagada y confirmar definitivamente el cupo retenido. | Pagada |
-| Pendiente de pago | `pagoRechazado` | Retención vigente | Informar el rechazo del pago y mantener el cupo retenido hasta el límite establecido. | Pendiente de pago |
-| Pendiente de pago | `pagoCancelado` | Retención vigente | Informar la cancelación del pago y mantener el cupo retenido hasta el límite establecido. | Pendiente de pago |
-| Pendiente de pago | `vencerRetencion` | Han transcurrido 8 minutos sin pago aprobado | Liberar el cupo y marcar la reserva como vencida. | Vencida |
+| Inicial | `registrarReserva` | Datos obligatorios válidos y todas las retenciones vigentes para el cliente | Registrar una reserva con código único y sus detalles, asociar el viaje y solicitar una notificación a cada pasajero. | Pendiente de pago |
+| Pendiente de pago | `pagoAprobado` | Pago aprobado por la pasarela y todas las retenciones vigentes | Confirmar la reserva y todos sus asientos sin descontar cupos nuevamente. | Pagada |
+| Pendiente de pago | `pagoRechazado` | Todas las retenciones vigentes | Informar el rechazo y conservar los vencimientos originales de los asientos. | Pendiente de pago |
+| Pendiente de pago | `pagoCancelado` | Todas las retenciones vigentes | Informar la cancelación y conservar los vencimientos originales de los asientos. | Pendiente de pago |
+| Pendiente de pago | `vencerRetencion` | Vence cualquier retención sin pago aprobado | Marcar toda la reserva como vencida, liberar todos sus asientos y restituir sus cupos. | Vencida |
 | Pagada | Finalización del ciclo | — | — | Final |
 | Vencida | Finalización del ciclo | — | — | Final |
+
+Cada asiento guarda su vencimiento de retención, correspondiente a 8 minutos desde su selección en DSS-01. Registrar la reserva no reinicia los plazos ni vuelve a descontar cupos. El primer vencimiento de sus asientos provoca el vencimiento de toda la reserva pendiente. Una vez pagada, las retenciones dejan de provocar el vencimiento de la reserva.
 
 ## EST-02 — Ciclo de vida de Pago
 

@@ -10,10 +10,18 @@
 
 Archivo fuente: [`./diagramas/dss-01.mmd`](./diagramas/dss-01.mmd)
 
-Variantes representadas:
+Flujo y variantes representadas:
 
-- `alt` Asiento disponible: el sistema bloquea el asiento de forma temporal, recibe los datos del pasajero, registra la reserva asociándola al viaje y solicita al servicio de correo externo el envío de la notificación de registro exitoso.
-- `alt` Asiento bloqueado temporalmente o reservado: el sistema impide la selección e informa al pasajero que el asiento no está disponible.
+- `loop` Selección de asientos: el cliente puede seleccionar uno o varios asientos del mismo viaje.
+- `alt` Asiento disponible: el sistema retiene el asiento durante 8 minutos desde su selección, guarda el vencimiento en `Asiento`, descuenta un cupo y confirma la retención.
+- `alt` Asiento retenido por otro cliente o reservado: el sistema impide la selección e informa que el asiento no está disponible.
+- Registro de datos: el cliente ingresa los datos de un pasajero por asiento e indica si la reserva incluye ida y vuelta.
+- `opt` Reserva de ida y vuelta: el sistema solicita el lugar de regreso obligatorio y el cliente lo ingresa.
+- `alt` Datos válidos y retenciones vigentes para el cliente: el sistema registra una única reserva pendiente de pago con un único código y un `DetalleReserva` por asiento con su pasajero. Conserva los vencimientos originales y no vuelve a descontar cupos.
+- `alt` Pérdida de disponibilidad o retención vencida: el sistema impide el registro completo, sin crear una reserva parcial, y solicita revisar la selección.
+- `alt` Datos obligatorios incompletos o inválidos: el sistema impide el registro e indica los campos que deben completarse o corregirse.
+- `loop` Notificación por pasajero: el sistema solicita al Servicio de correo externo una notificación de registro exitoso para cada pasajero.
+- `opt` Consulta de la reserva: mediante su código, el cliente consulta el viaje, los asientos, sus pasajeros, el estado y la modalidad; si incluye ida y vuelta, también se muestra el lugar de regreso.
 
 ## DSS-02 — Pagar reserva
 

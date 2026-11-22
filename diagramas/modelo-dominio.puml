@@ -31,6 +31,7 @@ class Viaje {
 }
 class Asiento {
   numero : Número
+  vencimientoRetencion : FechaHora
 }
 class Vehiculo {
   modelo : Texto
@@ -53,8 +54,11 @@ class Pasajero {
 class Reserva {
   codigoReserva : Texto
   fechaRegistro : FechaHora
-  vencimientoRetencion : FechaHora
   estado : EstadoReserva
+  idaYVuelta : Booleano
+  lugarRegreso : Texto
+}
+class DetalleReserva {
 }
 class Pago {
   idPago : Texto
@@ -71,10 +75,28 @@ Evento "1" -- "1" Viaje : corresponde a
 Vehiculo "1" -- "0..*" Viaje : se utiliza en
 Viaje "1" *-- "1..*" Asiento : contiene
 Viaje "1" -- "0..*" Reserva : recibe
-Asiento "1" -- "0..*" Reserva : se asigna a
-Pasajero "1" -- "0..*" Reserva : realiza
+Reserva "1" *-- "1..*" DetalleReserva : incluye
+Asiento "1" -- "0..*" DetalleReserva : se asigna en
+Pasajero "1" -- "0..*" DetalleReserva : ocupa
 Reserva "1" -- "0..*" Pago : registra
-Reserva "1" *-- "0..1" RegistroAsistencia : documenta abordaje
+DetalleReserva "1" *-- "0..1" RegistroAsistencia : documenta abordaje
 Administrador "1" -- "0..*" Viaje : crea
+
+note right of Asiento
+  El vencimiento es opcional si no existe retención.
+  La retención dura 8 minutos desde la selección
+  y no se reinicia al confirmar la reserva.
+  Un asiento no admite más de una retención
+  o asignación vigente al mismo tiempo.
+end note
+
+note right of Reserva
+  Todos los asientos pertenecen al mismo viaje.
+  lugarRegreso es obligatorio si idaYVuelta
+  es verdadero; en otro caso, es opcional.
+  Si vence la retención de cualquier asiento
+  de una reserva pendiente, vence la reserva
+  completa y se liberan todos sus asientos.
+end note
 @enduml
 

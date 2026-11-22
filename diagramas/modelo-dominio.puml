@@ -71,7 +71,7 @@ Evento "1" -- "1" Viaje : corresponde a
 Vehiculo "1" -- "0..*" Viaje : se utiliza en
 Viaje "1" *-- "1..*" Asiento : contiene
 Viaje "1" -- "0..*" Reserva : recibe
-Asiento "1" -- "0..*" Reserva : se asigna a
+Asiento "1..*" -- "1..*" Reserva : se asigna a
 Pasajero "1" -- "0..*" Reserva : realiza
 Reserva "1" -- "0..*" Pago : registra
 Reserva "1" *-- "0..1" RegistroAsistencia : documenta abordaje

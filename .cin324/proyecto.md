@@ -54,6 +54,11 @@
   - `codigoReserva` lo genera el sistema y `vencimientoRetencion = fechaRegistro + 8 minutos`.
   - La reserva se crea en estado «Pendiente de pago»; el Servicio de correo se simula.
   - Ficha confirmada: `.cin324/historias/HU-02.md`.
+- 2026-11-22, revalidación de HU-01 confirmada por el estudiante:
+  - Se muestran la `capacidad` y los `cuposDisponibles` en la cartelera y en el detalle del viaje.
+  - No se agrega al Gherkin un escenario de viaje inexistente o no publicado porque la historia no ofrece filtrado de viajes.
+  - La implementación actual muestra solo `cuposDisponibles`; queda pendiente el ajuste para mostrar también `capacidad`.
+  - Ficha confirmada: `.cin324/historias/HU-01.md`.
 
 ## Stack (se define una sola vez)
 - Lenguaje y framework: TypeScript + Express + EJS
@@ -66,7 +71,7 @@
 ## Historias
 | Historia | Estado | Cambio de OpenSpec | Fecha | Observaciones |
 |----------|--------|--------------------|-------|----------------|
-| HU-01 | generada, pendiente de validación | `hu-01-consultar-cartelera` | 2026-11-14 | Consultar cartelera (CU-01). Implementada; 15 pruebas pasan. Ficha `.cin324/historias/HU-01.md` |
+| HU-01 | validada; pendiente de ajuste (mostrar capacidad) | `hu-01-consultar-cartelera` | 2026-11-22 | Consultar cartelera (CU-01). Revalidada: mostrar `capacidad` y `cuposDisponibles`. Implementación actual muestra solo cupos. Ficha `.cin324/historias/HU-01.md` |
 | HU-02 | generada, pendiente de validación | `hu-02-registrar-reserva` | 2026-11-19 | Registrar reserva y pasajero (CU-02, DSS-01, EST-01). Una reserva = un asiento = un pasajero. 66 pruebas pasan. Ficha `.cin324/historias/HU-02.md` |
 | HU-03 | generada; ajuste de fechas implementado, pendiente de validación | `hu-03-crear-viaje`, `ajuste-hu-03-fechas` | 2026-11-18 | Crear viaje (CU-04). Patente solo formato actual `AABB11`. Ajuste OBS-1: fechas reales del calendario, no anteriores a hoy y máximo 31/12/(año+100). 43 pruebas pasan. Ficha `.cin324/historias/HU-03.md` |
 | HU-04 | pendiente | — | — | Visualizar pasajeros (CU-05) |
@@ -75,6 +80,7 @@
 ## Validaciones
 | Historia | Informe | Estado | Fecha |
 |----------|---------|--------|-------|
+| HU-01 | `.cin324/historias/HU-01.md` | confirmada (revalidación) | 2026-11-22 |
 | HU-02 | `.cin324/historias/HU-02.md` | confirmada (validación directa) | 2026-11-19 |
 
 ## Cambios posteriores

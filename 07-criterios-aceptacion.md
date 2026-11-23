@@ -181,19 +181,67 @@ Como pasajero, quiero pagar mi reserva de forma online utilizando distintos mét
 Característica: Procesar pagos y actualizar reservas
 
   Escenario: Redirección a pasarela
-    Dado que el cliente ha completado sus datos de reserva,
+    Dado que el cliente ha completado los datos de una reserva con uno o varios asientos del mismo viaje y todas sus retenciones siguen vigentes,
     Cuando confirma el registro,
-    Entonces el sistema lo redirige de forma segura a una pasarela de pago externa.
- 
+    Entonces el sistema registra una única reserva pendiente de pago e inicia un intento de pago por su monto total
+    Y lo redirige de forma segura a una pasarela de pago externa que permite tarjeta de crédito o débito.
+
+  Escenario: Monto total de la reserva
+    Dado que una reserva incluye uno o varios asientos del mismo viaje,
+    Cuando el sistema inicia el pago,
+    Entonces el monto es el costo del viaje multiplicado por la cantidad de asientos incluidos
+    Y no agrega un recargo por la modalidad de ida y vuelta.
+
   Escenario: Pago exitoso
-    Dado que el pasajero realiza la transacción en la pasarela, 
-    Cuando el pago es aprobado,
-    Entonces el sistema actualiza automáticamente el estado de la reserva a "Pagada"
-    Y confirma definitivamente el cupo retenido del viaje sin volver a descontarlo.
+    Dado que la reserva está pendiente de pago y todas sus retenciones siguen vigentes,
+    Cuando la pasarela aprueba el pago,
+    Entonces el sistema registra el pago como "Aprobado" y actualiza la reserva a "Pagada"
+    Y confirma todos sus asientos sin volver a descontar cupos
+    Y informa al pasajero que el pago confirmó la reserva.
 
   Escenario: Pago fallido o cancelado
-    Dado que el cliente se encuentre en la pasarela de pagos,
+    Dado que el cliente se encuentra en la pasarela y todas las retenciones de su reserva siguen vigentes,
     Cuando la pasarela rechaza la transacción o el usuario cancela la operación,
-    Entonces el sistema informa que el pago no fue completado
-    Y mantiene el cupo retenido solo por el tiempo límite de 8 minutos antes de liberarlo.
+    Entonces el sistema registra el pago como "Rechazado" o "Cancelado", según corresponda
+    Y muestra "El pago no fue completado"
+    Y conserva la reserva pendiente y los vencimientos originales de todos sus asientos, sin reiniciar sus plazos.
+
+  Escenario: Reintento dentro del plazo original
+    Dado que un intento fue rechazado o cancelado y la reserva sigue pendiente con todas sus retenciones vigentes,
+    Cuando el pasajero reintenta el pago,
+    Entonces el sistema inicia otro intento por el monto total de la reserva
+    Y conserva el historial de intentos y los vencimientos originales de los asientos.
+
+  Escenario: Vencimiento de una reserva pendiente
+    Dado que existe una reserva pendiente de pago con uno o varios asientos,
+    Cuando vence la retención de cualquiera de ellos sin pago aprobado,
+    Entonces el sistema marca toda la reserva como "Vencida"
+    Y libera todos sus asientos y restituye sus cupos.
+
+  Escenario: Impedir un nuevo intento de pago de una reserva vencida
+    Dado que una reserva venció o alguna de sus retenciones alcanzó su vencimiento mientras seguía pendiente,
+    Cuando el pasajero intenta iniciar otro pago,
+    Entonces el sistema mantiene o aplica el vencimiento de toda la reserva
+    Y impide iniciar el nuevo intento e informa que la reserva está vencida.
+
+  Escenario: Pago aprobado después del vencimiento
+    Dado que la reserva venció o alguna de sus retenciones venció mientras seguía pendiente,
+    Cuando el sistema recibe una aprobación de pago para ella,
+    Entonces registra el pago como "Aprobado" y mantiene o aplica el vencimiento completo de la reserva
+    Y solicita automáticamente a la pasarela la devolución del monto completo, dejando registrada la solicitud
+    Y informa al pasajero que la reserva venció y la devolución fue solicitada
+    Y no reactiva la reserva ni vuelve a ocupar sus asientos.
+
+  Escenario: Devolución solicitada aún no confirmada
+    Dado que se solicitó la devolución de un pago aprobado para una reserva vencida,
+    Cuando la pasarela aún no ha confirmado la devolución completa,
+    Entonces el pago permanece "Aprobado" con la solicitud registrada
+    Y el sistema no informa que el monto ya fue devuelto.
+
+  Escenario: Devolución completa confirmada
+    Dado que se solicitó la devolución de un pago aprobado para una reserva vencida,
+    Cuando la pasarela confirma la devolución completa,
+    Entonces el sistema actualiza el pago a "Devuelto"
+    Y mantiene la reserva "Vencida" y sus asientos liberados
+    Y informa al pasajero que su reserva venció y el monto fue devuelto.
 ```

@@ -1,3 +1,4 @@
+
 @startuml
 title EST-02 — Ciclo de vida de Pago
 skinparam backgroundColor white
@@ -13,13 +14,25 @@ state "Pendiente" as Pendiente
 state "Aprobado" as Aprobado
 state "Rechazado" as Rechazado
 state "Cancelado" as Cancelado
+state "Devuelto" as Devuelto
 
 [*] --> Pendiente : iniciarPago\n[reserva pendiente y retención vigente]
 Pendiente --> Aprobado : resultadoPasarela\n[pago aprobado] / notificar aprobación
 Pendiente --> Rechazado : resultadoPasarela\n[pago rechazado] / notificar rechazo
 Pendiente --> Cancelado : cancelacionPago\n[operación cancelada] / notificar cancelación
 
-Aprobado --> [*]
+Aprobado --> Aprobado : solicitarDevolucion\n[reserva Vencida] / registrar solicitud
+Aprobado --> Devuelto : confirmarDevolucion\n[reserva Vencida y devolución completa confirmada] / registrar devolución
+Aprobado --> [*] : [reserva Pagada y sin devolución solicitada]
+
+Devuelto --> [*]
+
+note left of Aprobado
+  Salidas mutuamente excluyentes:
+  si la reserva quedó Pagada, el pago
+  finaliza; si quedó Vencida, pasa a
+  Devuelto al confirmarse la devolución.
+end note
 Rechazado --> [*]
 Cancelado --> [*]
 

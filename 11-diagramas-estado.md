@@ -40,6 +40,11 @@ Archivo fuente: [`./diagramas/est-02.puml`](./diagramas/est-02.puml)
 | Pendiente | `resultadoPasarela` | Pago aprobado | Registrar el pago como aprobado y notificar el resultado al sistema para confirmar la reserva. | Aprobado |
 | Pendiente | `resultadoPasarela` | Pago rechazado | Registrar el pago como rechazado y comunicar el rechazo; la reserva conserva su retención hasta el plazo límite. | Rechazado |
 | Pendiente | `cancelacionPago` | El pasajero cancela la operación | Registrar el pago como cancelado y comunicar la cancelación; la reserva conserva su retención hasta el plazo límite. | Cancelado |
-| Aprobado | Finalización del ciclo | — | — | Final |
+| Aprobado | Finalización del ciclo | Pago aprobado con la reserva Pagada y sin devolución solicitada | — | Final |
+| Aprobado | `solicitarDevolucion` | La reserva está vencida; si aún figura pendiente, se aplica primero el vencimiento completo | Registrar la solicitud y solicitar automáticamente la devolución del monto completo. | Aprobado |
+| Aprobado | `confirmarDevolucion` | La reserva está Vencida y la pasarela confirma la devolución completa solicitada | Registrar la devolución e informar al pasajero. | Devuelto |
 | Rechazado | Finalización del ciclo | — | — | Final |
 | Cancelado | Finalización del ciclo | — | — | Final |
+| Devuelto | Finalización del ciclo | — | — | Final |
+
+Las salidas desde **Aprobado** son mutuamente excluyentes según el estado de la reserva: si la reserva quedó **Pagada**, el pago finaliza; si quedó **Vencida**, permanece **Aprobado** mientras la devolución no esté confirmada y luego pasa a **Devuelto**. No se agrega un estado «Devolución pendiente». La devolución no genera una transición de `Reserva`: esta permanece **Vencida**.

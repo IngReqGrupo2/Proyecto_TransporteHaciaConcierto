@@ -45,7 +45,7 @@ describe('HU-02 · Registrar reserva y pasajero', () => {
   }
   const confirmar = (pasajeros: DatosPasajero[], idaYVuelta = false, lugarRegreso = '', agente = cliente) => agente
     .post('/cartelera/V-001/reservar').type('form').send(cuerpo(pasajeros, idaYVuelta, lugarRegreso));
-  const llamadas = () => (db.prepare('SELECT detalle FROM integraciones_log ORDER BY id_log').all() as Array<{ detalle: string }>)
+  const llamadas = () => (db.prepare("SELECT detalle FROM integraciones_log WHERE sistema='Servicio de correo' ORDER BY id_log").all() as Array<{ detalle: string }>)
     .map((f) => JSON.parse(f.detalle));
 
   it('HU-02 · Retención de un asiento al seleccionarlo', async () => {
@@ -72,7 +72,9 @@ describe('HU-02 · Registrar reserva y pasajero', () => {
     avanzar(2);
     await seleccionar(2).expect(303);
     avanzar(1);
-    const respuesta = await confirmar([p(1), p(2)]).expect(201);
+    const registro = await confirmar([p(1), p(2)]).expect(303);
+    expect(registro.headers.location).toMatch(/^\/simulacion\/pasarela\//);
+    const respuesta = await cliente.get(registro.headers.location).expect(200);
     expect(respuesta.text).toContain('Reserva registrada');
     expect(respuesta.text).toContain('R-001');
     expect(respuesta.text).toContain('Asiento 1');
@@ -99,7 +101,7 @@ describe('HU-02 · Registrar reserva y pasajero', () => {
     const rechazo = await seleccionar(1, otro).expect(400);
     expect(rechazo.text).toContain('No hay cupos disponibles para el asiento seleccionado.');
     expect(db.prepare('SELECT * FROM asiento WHERE id_asiento = 1').get()).toEqual(original);
-    await confirmar([p(1)]).expect(201);
+    await confirmar([p(1)]).expect(303);
     await seleccionar(1, otro).expect(400);
     expect(cupos()).toBe(16);
     expect(cantidad('reserva')).toBe(1);
@@ -108,7 +110,7 @@ describe('HU-02 · Registrar reserva y pasajero', () => {
   it('HU-02 · Consultar una reserva registrada', async () => {
     await seleccionar(1).expect(303);
     await seleccionar(2).expect(303);
-    await confirmar([p(1), p(2)], true, 'Plaza de regreso').expect(201);
+    await confirmar([p(1), p(2)], true, 'Plaza de regreso').expect(303);
     const consulta = await request(app).get('/reservas/r-001').expect(200);
     for (const texto of ['Estado de la reserva', 'R-001', 'Concierto Rock', 'Camila Rojas',
       'José Rojas', 'Asiento 1', 'Asiento 2', 'Pendiente de pago', 'Sí, incluye ida y vuelta', 'Plaza de regreso']) {
@@ -134,7 +136,7 @@ describe('HU-02 · Registrar reserva y pasajero', () => {
     await seleccionar(1).expect(303);
     avanzar(2);
     await seleccionar(2).expect(303);
-    await confirmar([p(1), p(2)]).expect(201);
+    await confirmar([p(1), p(2)]).expect(303);
     avanzar(6);
     const consulta = await cliente.get('/reservas/R-001').expect(200);
     expect(consulta.text).toContain('Vencida');
@@ -151,7 +153,8 @@ describe('HU-02 · Registrar reserva y pasajero', () => {
 
   it('HU-02 · Registro del lugar de regreso', async () => {
     await seleccionar(1).expect(303);
-    const respuesta = await confirmar([p(1)], true, ' Terminal Norte ').expect(201);
+    const registro = await confirmar([p(1)], true, ' Terminal Norte ').expect(303);
+    const respuesta = await cliente.get(registro.headers.location).expect(200);
     expect(respuesta.text).toContain('Terminal Norte');
     expect(repo.buscarPorCodigo('R-001')).toMatchObject({ idaYVuelta: true, lugarRegreso: 'Terminal Norte' });
   });
@@ -171,7 +174,8 @@ describe('HU-02 · Registrar reserva y pasajero', () => {
 
   it('HU-02 · Reserva sin ida y vuelta', async () => {
     await seleccionar(1).expect(303);
-    const r = await confirmar([p(1)]).expect(201);
+    const registro = await confirmar([p(1)]).expect(303);
+    const r = await cliente.get(registro.headers.location).expect(200);
     expect(r.text).toContain('No incluye ida y vuelta');
     expect(repo.buscarPorCodigo('R-001')).toMatchObject({ idaYVuelta: false, lugarRegreso: null });
     expect(repo.buscarPorCodigo('R-001')?.detalles).toHaveLength(1);
@@ -181,12 +185,12 @@ describe('HU-02 · Registrar reserva y pasajero', () => {
   it('HU-02 · Pasajero existente reutilizado y notificado una sola vez por reserva', async () => {
     await seleccionar(1).expect(303);
     await seleccionar(2).expect(303);
-    await confirmar([p(1), p(2, { rut: '1234567K', nombres: 'Otro nombre' })]).expect(201);
+    await confirmar([p(1), p(2, { rut: '1234567K', nombres: 'Otro nombre' })]).expect(303);
     expect(cantidad('pasajero')).toBe(1);
     expect(llamadas()).toHaveLength(1);
     expect(llamadas()[0].asientos).toHaveLength(2);
     await seleccionar(3).expect(303);
-    await confirmar([p(3, { rut: '1.234.567-k', nombres: 'Cambio' })]).expect(201);
+    await confirmar([p(3, { rut: '1.234.567-k', nombres: 'Cambio' })]).expect(303);
     expect(repo.buscarPorCodigo('R-002')?.detalles[0]?.pasajero.nombres).toBe('Camila');
     expect(cantidad('pasajero')).toBe(1);
   });
@@ -210,7 +214,7 @@ describe('HU-02 · Registrar reserva y pasajero', () => {
       .send(`${cuerpo([p(1)])}&clienteReserva=${fila.cliente}&cliente=${fila.cliente}`).expect(400);
     expect(respuesta.text).toContain('Revisa tu selección');
     expect(cantidad('reserva')).toBe(0);
-    await confirmar([p(1)]).expect(201);
+    await confirmar([p(1)]).expect(303);
   });
 
   it.each([
@@ -234,7 +238,7 @@ describe('HU-02 · Registrar reserva y pasajero', () => {
     expect(cupos()).toBe(0);
     const ganador = respuestas[0]!.status === 303 ? cliente : otro;
     await ganador.get('/cartelera/V-001/reservar').expect(200);
-    await confirmar([p(1)], false, '', ganador).expect(201);
+    await confirmar([p(1)], false, '', ganador).expect(303);
     expect(cupos()).toBe(0);
   });
 

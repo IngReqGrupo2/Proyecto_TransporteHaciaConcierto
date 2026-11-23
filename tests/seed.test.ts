@@ -3,8 +3,40 @@ import { cargarDatosEjemplo } from '../src/db/seed';
 import { ViajeRepositorio } from '../src/dominio/viaje';
 import { crearBaseDePrueba } from './ayudas';
 import { ReservaRepositorio } from '../src/dominio/reserva';
+import { ServicioPagos } from '../src/dominio/pago';
+import { PasarelaPagoSimulada } from '../src/integraciones/pasarela-pago';
+import { pasajeroEjemplo } from './ayudas-pagos';
 
 describe('Datos de ejemplo', () => {
+  it('preserva una reserva pagada, su historial de intentos y las retenciones al volver a sembrar', () => {
+    const db = crearBaseDePrueba();
+    try {
+      const ahora = () => new Date('2026-11-22T12:00:00Z');
+      cargarDatosEjemplo(db, ahora);
+      expect(db.prepare('SELECT * FROM pago').all()).toEqual([]);
+      const reservas = new ReservaRepositorio(db, ahora);
+      for (const id of [1, 2]) reservas.retenerAsiento('V-001', String(id), 'A');
+      const reserva = reservas.registrarReserva('V-001', 'A', {
+        pasajeros: [1, 2].map(pasajeroEjemplo), idaYVuelta: false, lugarRegreso: '',
+      });
+      const pagos = new ServicioPagos(db, new PasarelaPagoSimulada(db, ahora), ahora);
+      const primero = pagos.iniciarPago(reserva.codigoReserva).pago;
+      pagos.simularResultado(primero.idPago, 'Rechazado', 'Tarjeta de débito');
+      const segundo = pagos.iniciarPago(reserva.codigoReserva).pago;
+      expect(segundo.monto).toBe(30000);
+      pagos.simularResultado(segundo.idPago, 'Aprobado', 'Tarjeta de crédito');
+      reservas.retenerAsiento('V-001', '3', 'B');
+      const historial = pagos.pagos.listarPorReserva(reserva.idReserva);
+      const retencion = reservas.listarRetenidos('V-001', 'B');
+      cargarDatosEjemplo(db, ahora);
+      cargarDatosEjemplo(db, ahora);
+      expect(reservas.buscarPorCodigo(reserva.codigoReserva)?.estado).toBe('Pagada');
+      expect(pagos.pagos.listarPorReserva(reserva.idReserva)).toEqual(historial);
+      expect(db.prepare('SELECT COUNT(*) AS total FROM pago').get()).toEqual({ total: 2 });
+      expect(reservas.listarRetenidos('V-001', 'B')).toEqual(retencion);
+      expect(new ViajeRepositorio(db).buscarPublicadoPorId('V-001')?.cuposDisponibles).toBe(14);
+    } finally { db.close(); }
+  });
   it('preserva retenciones y reservas al repetirse y regulariza vencimientos', () => {
     const db = crearBaseDePrueba();
     let fecha = new Date('2026-11-22T12:00:00.000Z');

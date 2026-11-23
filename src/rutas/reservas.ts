@@ -5,6 +5,7 @@ import { ErrorSinDisponibilidad, ErrorViajeNoDisponible, ReservaRepositorio,
   type DatosPasajero, type DatosReserva } from '../dominio/reserva';
 import { ErrorValidacion, ViajeRepositorio } from '../dominio/viaje';
 import type { ServicioCorreo } from '../integraciones/correo';
+import type { ServicioPagos } from '../dominio/pago';
 
 const VACIOS: DatosReserva = { pasajeros: [], idaYVuelta: false, lugarRegreso: '' };
 
@@ -55,7 +56,7 @@ function extraerValores(cuerpo: unknown): DatosReserva {
 
 // HU-02 · CU-02 · DSS-01 · TO-BE: seleccionar, verificar y registrar cupos.
 export function crearRutasReservas(
-  db: BaseDeDatos, correo: ServicioCorreo, ahora: () => Date = () => new Date(),
+  db: BaseDeDatos, correo: ServicioCorreo, ahora: () => Date, pagos: ServicioPagos,
 ): Router {
   const router = Router();
   const reservas = new ReservaRepositorio(db, ahora);
@@ -114,7 +115,14 @@ export function crearRutasReservas(
           console.error('No se pudo registrar la notificación simulada.', error);
         }
       }
-      res.status(201).render('reserva-creada', { titulo: 'Reserva registrada', reserva });
+      // HU-05: la reserva ya existe. Un vencimiento al iniciar pago lleva a su consulta.
+      try {
+        res.redirect(303, pagos.iniciarPago(reserva.codigoReserva).ubicacion);
+      } catch (error) {
+        if (error instanceof ErrorValidacion) {
+          res.redirect(303, `/reservas/${encodeURIComponent(reserva.codigoReserva)}`);
+        } else throw error;
+      }
     } catch (error) {
       if (error instanceof ErrorValidacion || error instanceof ErrorSinDisponibilidad) {
         formulario(res, req.params.idViaje, cliente, valores, error);
@@ -130,7 +138,11 @@ export function crearRutasReservas(
       res.status(404).render('error', { titulo: 'Reserva no encontrada', mensaje: 'No se encontró la reserva solicitada.' });
       return;
     }
-    res.render('reserva-detalle', { titulo: `Reserva ${reserva.codigoReserva}`, reserva });
+    const historial = pagos.pagos.listarPorReserva(reserva.idReserva);
+    const ultimo = historial.at(-1);
+    res.render('reserva-detalle', { titulo: `Reserva ${reserva.codigoReserva}`, reserva, pagos: historial,
+      puedeIniciarPago: reserva.estado === 'Pendiente de pago' && reservas.tieneRetencionesVigentes(reserva.idReserva, ahora()) &&
+        (!ultimo || ultimo.estado === 'Rechazado' || ultimo.estado === 'Cancelado') });
   });
   return router;
 }

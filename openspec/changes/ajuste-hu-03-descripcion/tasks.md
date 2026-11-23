@@ -1,4 +1,4 @@
-# Tasks — Ajuste HU-03: registrar una descripción opcional del viaje
+# Tasks — Ajuste HU-03: registrar y mostrar una descripción opcional del viaje
 
 ## 1. Datos y migración
 
@@ -27,6 +27,13 @@
 
 - [x] 5.1 Actualizar `README.md` con el campo opcional «Descripción» en la creación de viajes y con su efecto en la persistencia; verificar que los comandos documentados (`npm run db:seed`, `npm run dev`, `npm test`) siguen siendo correctos.
 - [x] 5.2 Ejecutar `npm test` y `npm run typecheck`; verificar que toda la suite y el chequeo de tipos pasan sin errores.
+
+## 6. Visualización de la descripción en cartelera y detalle
+
+- [x] 6.1 Mostrar la descripción en `src/vistas/cartelera.ejs` dentro de cada tarjeta de viaje cuando `viaje.descripcion` no sea null ni vacía.
+- [x] 6.2 Mostrar la descripción en `src/vistas/detalle.ejs` cuando `viaje.descripcion` no sea null ni vacía.
+- [x] 6.3 Agregar pruebas en `tests/cartelera.test.ts` para los tres escenarios de visualización (cartelera con descripción, detalle con descripción y visualización sin restricción de rol) y verificar que no se muestre cuando el viaje no tenga descripción.
+- [x] 6.4 Actualizar `README.md` para documentar la visualización de la descripción en cartelera y detalle, y verificar con `npm test` y `npm run typecheck`.
 
 ## Workflow follow-up
 

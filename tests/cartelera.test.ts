@@ -126,4 +126,70 @@ describe('HU-01 · Cartelera de viajes', () => {
 
     expect(respuesta.headers.location).toBe('/cartelera');
   });
+
+  it('HU-01 · Existen viajes disponibles con descripción', async () => {
+    const app = appConViaje(
+      { cuposDisponibles: 12, descripcion: 'Traslado seguro con aire acondicionado.' },
+      'Concierto Rock',
+    );
+
+    const respuesta = await request(app).get('/cartelera').expect(200);
+
+    expect(respuesta.text).toContain('Concierto Rock');
+    expect(respuesta.text).toContain('Traslado seguro con aire acondicionado.');
+  });
+
+  it('HU-01 · Viajes disponibles sin descripción no muestran texto de descripción', async () => {
+    const app = appConViaje(
+      { cuposDisponibles: 12, descripcion: null },
+      'Concierto Rock',
+    );
+
+    const respuesta = await request(app).get('/cartelera').expect(200);
+
+    expect(respuesta.text).toContain('Concierto Rock');
+    expect(respuesta.text).not.toContain('class="descripcion"');
+  });
+
+  it('HU-01 · Verificar disponibilidad de un viaje con descripción', async () => {
+    const app = appConViaje(
+      { cuposDisponibles: 7, descripcion: 'Incluye traslado directo al recinto.' },
+      'Concierto Jazz',
+    );
+
+    const respuesta = await request(app)
+      .get('/cartelera/V-001')
+      .expect(200);
+
+    expect(respuesta.text).toContain('Concierto Jazz');
+    expect(respuesta.text).toContain('Cupos disponibles: 7 de 17');
+    expect(respuesta.text).toContain('Incluye traslado directo al recinto.');
+  });
+
+  it('HU-01 · Detalle de un viaje sin descripción no muestra texto de descripción', async () => {
+    const app = appConViaje(
+      { cuposDisponibles: 7, descripcion: null },
+      'Concierto Jazz',
+    );
+
+    const respuesta = await request(app)
+      .get('/cartelera/V-001')
+      .expect(200);
+
+    expect(respuesta.text).toContain('Concierto Jazz');
+    expect(respuesta.text).not.toContain('class="descripcion"');
+  });
+
+  it('HU-01 · La descripción se muestra sin restricción de rol', async () => {
+    const app = appConViaje(
+      { cuposDisponibles: 10, descripcion: 'Visible para cualquier rol.' },
+      'Festival',
+    );
+
+    const cartelera = await request(app).get('/cartelera').expect(200);
+    expect(cartelera.text).toContain('Visible para cualquier rol.');
+
+    const detalle = await request(app).get('/cartelera/V-001').expect(200);
+    expect(detalle.text).toContain('Visible para cualquier rol.');
+  });
 });

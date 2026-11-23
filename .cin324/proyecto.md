@@ -74,6 +74,15 @@
   - Las validaciones de patente, costo y capacidad quedan registradas en la ficha como decisiones, sin cambios en `CA1` ni en el Gherkin (decisión 4B).
   - Ficha confirmada: `.cin324/historias/HU-03.md`.
 
+- 2026-11-22, validación de HU-05 confirmada por el estudiante:
+  - Se confirmaron los cinco puntos de validación y la ficha completa: `.cin324/historias/HU-05.md`.
+  - CU-03 con Pasajero y Pasarela de pago simulada; medios habilitados: crédito y débito.
+  - Un pago por el total de la reserva: costo del viaje por cantidad de asientos, sin recargo por ida y vuelta. Se permiten reintentos tras rechazo o cancelación mientras todas las retenciones originales sigan vigentes, conservando el historial.
+  - Aprobar dentro del plazo confirma todos los asientos sin descontar cupos nuevamente. Rechazo o cancelación no reinician plazos ni cancelan inmediatamente la reserva; vence toda la reserva pendiente al vencer cualquiera de sus asientos.
+  - La aprobación tardía registra el pago aprobado y solicita devolución completa, manteniendo la reserva vencida sin recuperar asientos. El pago permanece Aprobado hasta que la pasarela confirme la devolución y pase a Devuelto.
+  - Se aceptó usar las reglas vigentes de la historia y las decisiones de la ficha ante las diferencias documentales. Queda pendiente incorporar la alineación al BPMN TO-BE, Gherkin, DSS-02 y EST-02 cuando el estudiante lo solicite; el texto Gherkin alineado está en la ficha.
+  - Cambio implementado: `hu-05-pagar-reserva`. La aprobación y el vencimiento se coordinan mediante transacciones SQLite; repetir aprobaciones o devoluciones no duplica sus efectos. El estudiante confirmó la aceptación y el cambio se archivó sin sincronizar la especificación principal, por su elección.
+
 ## Stack (se define una sola vez)
 - Lenguaje y framework: TypeScript + Express + EJS
 - Base de datos: SQLite con `better-sqlite3` — archivo `data/app.db`
@@ -89,7 +98,7 @@
 | HU-02 | ajuste implementado, pendiente de validación del sistema | `hu-02-registrar-reserva` (versión anterior); `ajuste-hu-02-reserva-multiple` (vigente) | 2026-11-22 | Reserva múltiple, retenciones desde selección, vencimiento completo y modalidad de regreso. Nueve escenarios vigentes cubiertos; 89 pruebas y tipos correctos. Migración conserva reservas anteriores. Verificación `.cin324/validaciones/VER-HU-02-implementacion.md`; guía en README. |
 | HU-03 | lista para especificar; ajuste de descripción pendiente | `hu-03-crear-viaje`, `ajuste-hu-03-fechas`; pendiente `ajuste-hu-03-descripcion` | 2026-11-22 | Crear viaje (CU-04). Patente solo formato actual `AABB11`. Fechas validadas. Validada el 2026-11-22: `descripcion` opcional y ajustes documentales; ajuste de descripción pendiente de implementar. Ficha `.cin324/historias/HU-03.md` |
 | HU-04 | pendiente | — | — | Visualizar pasajeros (CU-05) |
-| HU-05 | pendiente | — | — | Pagar reserva (CU-03, DSS-02, EST-01/02) |
+| HU-05 | implementada, validada y archivada | [`hu-05-pagar-reserva`](../openspec/changes/archive/2026-11-22-hu-05-pagar-reserva/) | 2026-11-22 | Pagar reserva (CU-03, DSS-02, EST-01/02). Pasarela simulada, reintentos, devolución por aprobación tardía y pruebas de concurrencia e idempotencia. 135 pruebas correctas y chequeo de tipos aprobado. |
 
 ## Validaciones
 | Historia | Informe | Estado | Fecha |
@@ -98,6 +107,8 @@
 | HU-02 | `.cin324/historias/HU-02.md` | ficha y especificaciones confirmadas; implementación autorizada; no equivale a aceptación del sistema | 2026-11-22 |
 | HU-02 | `.cin324/validaciones/VER-HU-02-implementacion.md` | verificación técnica correcta; validación de aceptación del estudiante pendiente | 2026-11-22 |
 | HU-03 | `.cin324/historias/HU-03.md` | confirmada | 2026-11-22 |
+| HU-05 | `.cin324/historias/HU-05.md` | cinco puntos y ficha completa confirmados | 2026-11-22 |
+| HU-05 | `.cin324/validaciones/VER-HU-05-implementacion.md` | verificación técnica correcta; aceptación confirmada por el estudiante | 2026-11-22 |
 
 
 ## Cambios posteriores

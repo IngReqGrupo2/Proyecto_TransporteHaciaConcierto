@@ -51,8 +51,13 @@ describe('HU-02 · Migración de reserva múltiple', () => {
         db.exec(fs.readFileSync(path.join(process.cwd(), 'src/db/migrations', nombre), 'utf8'));
         db.prepare('INSERT INTO schema_migrations VALUES (?, ?)').run(nombre, '2026-11-19');
       }
-      sembrarViaje(db, { cuposDisponibles: 17 });
-      db.exec(`INSERT INTO pasajero VALUES (1, '123K', 'Ana', 'Rojas', '123', 'ana@ejemplo.cl')`);
+      // La versión 004 todavía no tiene la columna descripcion del fixture actual.
+      db.exec(`INSERT INTO evento (id_evento, nombre, fecha_evento) VALUES (1, 'Concierto de prueba', '2027-01-15');
+        INSERT INTO viaje (id_viaje,id_evento,id_vehiculo,fecha_viaje,hora_salida,hora_regreso,
+          lugar_encuentro,costo,capacidad,cupos_disponibles,estado,conductor_asignado,asistente_asignado)
+        VALUES ('V-001',1,1,'2027-01-15','18:30','02:00','Plaza',15000,17,17,'Publicado','Carlos','Ana');
+        INSERT INTO asiento (id_viaje,numero) VALUES ('V-001',1),('V-001',2),('V-001',3);
+        INSERT INTO pasajero VALUES (1, '123K', 'Ana', 'Rojas', '123', 'ana@ejemplo.cl');`);
       const insertar = db.prepare(`INSERT INTO reserva
         (id_reserva, codigo_reserva, id_pasajero, id_viaje, id_asiento,
          fecha_registro, vencimiento_retencion, estado)

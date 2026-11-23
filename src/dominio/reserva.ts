@@ -62,6 +62,7 @@ export interface DatosReserva {
 
 type EventoReserva =
   | { tipo: 'registrarReserva'; idViaje: string; cliente: string; datos: DatosReserva }
+  | { tipo: 'pagoAprobado'; idReserva: number }
   | { tipo: 'vencerRetencion'; idReserva: number };
 
 export class ErrorViajeNoDisponible extends Error {
@@ -198,11 +199,13 @@ export class ReservaRepositorio {
     return this.cargarDetalle(id)!;
   }
 
-  // EST-01: única función para crear una reserva o cambiar su estado en HU-02.
-  transicionarReserva(evento: EventoReserva, instante: Date = this.ahora()): number {
+  // EST-01: único punto de creación y transición de Reserva (HU-02/05).
+  transicionarReserva(evento: EventoReserva, instante?: Date): number {
     if (evento.tipo === 'registrarReserva') this.procesarVencimientos(instante);
     return this.db
       .transaction(() => {
+        // Leer el reloj después de adquirir el bloqueo (o usar el instante del coordinador).
+        instante ??= this.ahora();
         if (evento.tipo === 'registrarReserva') {
           const { idViaje, cliente } = evento;
           const viaje = this.buscarViaje(idViaje);
@@ -250,13 +253,25 @@ export class ReservaRepositorio {
               .run(idReserva, idViaje, idAsiento, idPasajero);
             this.db
               .prepare(
+                // HU-02/05: registrar no renueva ni elimina el plazo desde la selección.
                 `UPDATE asiento
-                 SET id_reserva_vigente = ?, cliente_retencion = NULL, vencimiento_retencion = NULL
+                 SET id_reserva_vigente = ?, cliente_retencion = NULL
                  WHERE id_asiento = ?`,
               )
               .run(idReserva, idAsiento);
           }
           return idReserva;
+        }
+
+        if (evento.tipo === 'pagoAprobado') {
+          if (!this.tieneRetencionesVigentes(evento.idReserva, instante)) {
+            throw new ErrorValidacion(['estado'], 'La reserva no tiene todas sus retenciones vigentes.');
+          }
+          const cambio = this.db.prepare(`UPDATE reserva SET estado = 'Pagada'
+            WHERE id_reserva = ? AND estado = 'Pendiente de pago'`).run(evento.idReserva);
+          if (cambio.changes !== 1) throw new ErrorValidacion(['estado'], 'La reserva no puede confirmarse desde su estado actual.');
+          // Los asientos ya están asignados; no se descuentan cupos al pagar.
+          return evento.idReserva;
         }
 
         if (evento.tipo === 'vencerRetencion') {
@@ -275,9 +290,10 @@ export class ReservaRepositorio {
               'La reserva no puede vencer desde su estado actual o antes de su plazo.',
             );
           }
-          this.db
-            .prepare("UPDATE reserva SET estado = 'Vencida' WHERE id_reserva = ?")
+          const cambio = this.db
+            .prepare("UPDATE reserva SET estado = 'Vencida' WHERE id_reserva = ? AND estado = 'Pendiente de pago'")
             .run(reserva.idReserva);
+          if (cambio.changes !== 1) return reserva.idReserva;
           const liberados = this.db
             .prepare(
               `UPDATE asiento SET id_reserva_vigente = NULL,
@@ -294,9 +310,10 @@ export class ReservaRepositorio {
       .immediate();
   }
 
-  procesarVencimientos(instante: Date = this.ahora()): void {
+  procesarVencimientos(instante?: Date): void {
     this.db
       .transaction(() => {
+        instante ??= this.ahora();
         const vencidas = this.db
           .prepare(
             `SELECT DISTINCT r.id_reserva AS idReserva
@@ -325,12 +342,20 @@ export class ReservaRepositorio {
       .immediate();
   }
 
-  buscarPorCodigo(codigoReserva: string): ReservaDetalle | undefined {
-    this.procesarVencimientos();
+  buscarPorCodigo(codigoReserva: string, instante?: Date): ReservaDetalle | undefined {
+    this.procesarVencimientos(instante);
     const fila = this.db
       .prepare('SELECT id_reserva AS idReserva FROM reserva WHERE codigo_reserva = ?')
       .get(codigoReserva.trim().toUpperCase()) as { idReserva: number } | undefined;
     return fila ? this.cargarDetalle(fila.idReserva) : undefined;
+  }
+
+  tieneRetencionesVigentes(idReserva: number, instante: Date): boolean {
+    const filas = this.db.prepare(`SELECT a.id_reserva_vigente AS vigente, a.vencimiento_retencion AS vencimiento
+      FROM detalle_reserva d JOIN asiento a ON a.id_asiento = d.id_asiento AND a.id_viaje = d.id_viaje
+      WHERE d.id_reserva = ?`).all(idReserva) as Array<{ vigente: number | null; vencimiento: string | null }>;
+    return filas.length > 0 && filas.every((a) => a.vigente === idReserva &&
+      a.vencimiento !== null && a.vencimiento > instante.toISOString());
   }
 
   private validarDatos(datos: DatosReserva): DatosReserva {

@@ -1,6 +1,6 @@
 # Transporte hacia Concierto
 
-Aplicación web del proyecto de Ingeniería de Requisitos (CIN 324). Se genera historia por historia desde los artefactos del repositorio; los cambios implementados son **HU-01 — Consultar la cartelera de viajes**, **HU-02 — Registrar reserva y pasajero** y **HU-03 — Crear un viaje en el sistema**.
+Aplicación web del proyecto de Ingeniería de Requisitos (CIN 324). Historias implementadas: **HU-01 — Consultar la cartelera de viajes**, **HU-02 — Registrar reserva y pasajero**, **HU-03 — Crear un viaje en el sistema** y **HU-05 — Pagar reserva**. Para probar los pagos, sigue la [guía de HU-05](#validación-manual-de-hu-05).
 
 ## Stack
 
@@ -41,7 +41,7 @@ El script es idempotente y carga tres eventos, dos vehículos y tres viajes:
 
 Cada viaje genera sus asientos al ser creado y el seed también los crea: `V-001` tiene 17 asientos, `V-002` tiene 10 y `V-003` tiene 17. Los tres viajes de ejemplo incluyen una descripción.
 
-Repetir el seed conserva las retenciones y reservas existentes. Los cupos se
+Repetir el seed conserva las retenciones, reservas e historial de pagos existentes. Los cupos se
 recalculan desde los asientos libres después de procesar los vencimientos;
 no se vuelve a ofrecer un asiento que siga retenido o asignado.
 
@@ -74,12 +74,18 @@ Al abrir la aplicación verás la cartelera con el rol de demostración Pasajero
 | `GET /cartelera/:idViaje` | Muestra el detalle, la capacidad y los cupos del viaje; si no tiene cupos, muestra «No hay cupos disponibles para este viaje.»; responde 404 si no existe o no está publicado |
 | `GET /cartelera/:idViaje/reservar` | Muestra asientos libres y la selección retenida del cliente, con un formulario de pasajero por asiento; permite continuar con retenciones propias aunque no queden cupos libres |
 | `POST /cartelera/:idViaje/retenciones` | Recibe `idAsiento`, retiene el asiento para el cliente durante 8 minutos y descuenta un cupo; redirige con 303 al formulario o responde 400 con el error |
-| `POST /cartelera/:idViaje/reservar` | Registra una única reserva «Pendiente de pago» con sus detalles y solicita correo simulado por pasajero, sin renovar plazos ni descontar cupos de nuevo; responde 201 o 400 |
-| `GET /reservas/:codigoReserva` | Muestra viaje, todos los pasajeros/asientos, estado y modalidad, con lugar de regreso si incluye ida y vuelta; responde 404 si no existe |
+| `POST /cartelera/:idViaje/reservar` | Registra la reserva y solicita el correo simulado sin renovar plazos. Ahora responde 303 (antes 201) hacia la pasarela; si vence entre el registro y el inicio del pago, redirige a la consulta. Responde 400 si los datos de registro son inválidos |
+| `GET /reservas/:codigoReserva` | Muestra viaje, pasajeros, asientos, modalidad, estado e historial de intentos con monto, medio y resultado; responde 404 si la reserva no existe |
+| `POST /reservas/:codigoReserva/pagos` | Inicia o reintenta el pago de una reserva pendiente con todas sus retenciones vigentes; responde 303 hacia la pasarela, 400 si no admite un intento o 404 si no existe |
+| `GET /simulacion/pasarela/:idPago` | Muestra el resumen, total y controles de la pasarela simulada para el intento existente; responde 404 si no existe |
+| `POST /simulacion/pasarela/:idPago/resultado` | Procesa aprobación, rechazo o cancelación simulados; responde 303 a la consulta, 400 si el resultado o medio es inválido o contradictorio, o 404 si no existe el intento |
+| `POST /simulacion/pasarela/:idPago/confirmar-devolucion` | Simula la confirmación externa de una devolución ya solicitada; responde 303 a la consulta, 400 si no corresponde o 404 si no existe el intento |
 | `GET /admin/viajes/nuevo` | Formulario para crear y publicar un viaje con el rol de demostración «Administrador» |
 | `POST /admin/viajes` | Valida y crea el evento, el vehículo y el viaje; responde 201 con la confirmación o 400 con los errores |
 
 No hay autenticación real: la cabecera indica «Rol de demostración: Pasajero» y las rutas `/admin` muestran «Administrador». El Servicio de correo se simula: cada notificación de registro exitoso queda en la tabla `integraciones_log`, pero no se envía un correo real.
+
+En la pasarela no se ingresan datos bancarios. Cada intento empieza **Pendiente**. Un pago **Aprobado** dentro del plazo confirma toda la reserva; un intento **Rechazado** o **Cancelado** mantiene los plazos originales. Una aprobación tardía deja la reserva **Vencida** y el pago **Aprobado** con devolución solicitada. Solo la confirmación simulada cambia el pago a **Devuelto**. Los mensajes de la integración se registran en `integraciones_log` bajo «Pasarela de pago».
 
 La cookie de sesión `clienteReserva` identifica al cliente de demostración que
 retuvo los asientos. Las pestañas del mismo navegador comparten cliente y
@@ -158,6 +164,25 @@ La integración de correo **está simulada**: las solicitudes quedan en
 `data/app.db`, tabla `integraciones_log`, con el destinatario, código único y
 asientos del pasajero. No llegan mensajes a las direcciones de ejemplo.
 
+## Validación manual de HU-05
+
+Abre <http://localhost:3000/cartelera/V-001/reservar> con los datos de ejemplo cargados. Usa asientos libres y los datos de Camila y José de la sección anterior. Cada asiento de V-001 cuesta $15.000. Anota el código que aparece en la pasarela y crea una reserva nueva para cada recorrido que lo requiera.
+
+| Escenario | Qué hacer | Resultado esperado |
+|---|---|---|
+| Redirección a pasarela | Selecciona asientos, completa el formulario y confirma antes del primer vencimiento. | Se abre «Pasarela de pago simulada», con un código de reserva y todos sus asientos. |
+| Monto total de la reserva | Compara un asiento con dos; repite con ida y vuelta y lugar de regreso. | $15.000 por un asiento y $30.000 por dos; ida y vuelta no cambia el precio. |
+| Pago exitoso | Elige crédito o débito y pulsa «Simular pago aprobado» antes del primer vencimiento. | Reserva **Pagada**, intento **Aprobado** y todos los asientos confirmados, sin otro descuento de cupos. |
+| Pago fallido o cancelado | Elige un medio y pulsa «Simular pago rechazado», o pulsa «Cancelar operación». | «El pago no fue completado»; se conserva la reserva pendiente con sus plazos originales. |
+| Reintento dentro del plazo original | Tras rechazar o cancelar, pulsa «Reintentar pago» antes del vencimiento. | Se abre otro intento por el total; la consulta conserva el anterior y los vencimientos no se reinician. |
+| Vencimiento de una reserva pendiente | Selecciona dos asientos en momentos distintos, registra la reserva y espera hasta el primer vencimiento sin pagar. Recarga la consulta. | Toda la reserva queda **Vencida** y se liberan ambos asientos. |
+| Impedir un nuevo intento de pago de una reserva vencida | Tras rechazar un intento, deja vencer la reserva y recarga. También puedes intentar el reintento desde una pestaña que quedó abierta. | No se ofrece otro intento en la consulta actualizada; si envías el formulario antiguo, se informa que la reserva está vencida. |
+| Pago aprobado después del vencimiento | Deja abierta la pasarela hasta alcanzar el vencimiento y recién entonces simula la aprobación. | Reserva **Vencida**, intento **Aprobado** y devolución completa solicitada automáticamente. |
+| Devolución solicitada aún no confirmada | Después de la aprobación tardía, recarga la consulta sin presionar el control de confirmación. | Se muestra la solicitud; el pago aún es **Aprobado** y el monto no se presenta como devuelto. |
+| Devolución completa confirmada | Pulsa «Simular confirmación de devolución completa». | El pago pasa a **Devuelto**, la reserva sigue **Vencida** y se informa que el monto fue devuelto. |
+
+Las pruebas automáticas ejercitan estos recorridos con un reloj controlado y también verifican la competencia entre aprobación y vencimiento, los mensajes duplicados y el rollback. La pasarela es simulada y su registro queda en `integraciones_log`.
+
 ## Pruebas
 
 ```bash
@@ -165,13 +190,17 @@ npm test
 npm run typecheck
 ```
 
-La verificación del ajuste el 2026-11-22 obtuvo **89 pruebas correctas en 10 archivos**, además del chequeo de tipos. Las pruebas usan SQLite en memoria o aislada y no modifican la base de datos de uso de la aplicación.
+En Windows PowerShell: `npm.cmd test` y `npm.cmd run typecheck`.
+
+La [verificación de HU-05](.cin324/validaciones/VER-HU-05-implementacion.md) obtuvo **135 pruebas correctas en 17 archivos**, además del chequeo de tipos. Las pruebas usan SQLite en memoria o en archivos temporales aislados.
 
 - `tests/reservas.test.ts`: una prueba con el nombre de cada uno de los nueve escenarios Gherkin de HU-02, más RUT reutilizado, formularios mal formados, titularidad entre clientes, último cupo y errores de consulta.
 - `tests/reserva-repositorio.test.ts`: plazos desde selección, idempotencia, rollback completo, guardas de transición y protección de asientos reocupados.
 - `tests/reserva-migracion.test.ts` y `tests/migraciones.test.ts`: esquema, restricciones y migración 004→005 conservando reservas y sus historiales.
 - `tests/servidor.test.ts`: regularización al arrancar y liberación por el temporizador sin solicitudes del usuario.
 - `tests/seed.test.ts`: repetir el seed preservando reservas y retenciones.
+- `tests/pagos.test.ts`: recorridos HTTP de pago con pasarela simulada.
+- `tests/pago-atomicidad.test.ts` y `tests/pago-concurrencia.test.ts`: rollback, competencia entre aprobación y vencimiento, mensajes duplicados y reapertura de la base.
 - Cobertura de escenarios de HU-01, HU-02 y HU-03 (incluidas validaciones de creación de viajes, fechas, patente, nombres, capacidad y reutilización del vehículo): campos faltantes y señalados, costo inválido, patente válida e inválida, fechas inválidas, nombres con al menos una letra, fecha del viaje no posterior a la del evento, descripción ingresada y vacía, capacidad, vehículo reutilizado, identificador consecutivo, reserva de un asiento disponible, rechazo de un asiento ocupado o de un viaje sin cupos, consulta de la reserva, reutilización del pasajero por RUT, retención de 8 minutos y unicidad de la reserva vigente, además de migraciones y datos de ejemplo.
 
 ## Estructura
@@ -182,17 +211,20 @@ src/
   server.ts               # arranque del servidor
   db/
     conexion.ts           # conexión SQLite y migraciones
-    migrations/           # 001–004: modelo original; 005: reserva múltiple y retenciones (006 pendiente: descripcion)
+    migrations/           # 001–004: modelo original; 005: descripción y reserva múltiple; 006: pagos
     seed.ts               # datos de ejemplo idempotentes
   dominio/
     viaje.ts              # tipos y repositorio de Evento/Vehiculo/Viaje
     reserva.ts            # Pasajero/Asiento/Reserva/DetalleReserva, retenciones y vencimientos
+    pago.ts               # intentos de pago, resultados y devoluciones
   integraciones/
     correo.ts             # Servicio de correo simulado
+    pasarela-pago.ts      # pasarela de pago simulada
   rutas/
     cartelera.ts          # rutas de HU-01 / CU-01
     reservas.ts           # rutas de HU-02 / CU-02
     admin-viajes.ts       # rutas de HU-03 / CU-04
+    pagos.ts              # rutas de HU-05 / CU-03
   util/formato.ts         # formato de montos y fechas
   vistas/                 # plantillas EJS (cartelera, detalle, reservas y admin)
 public/estilos.css
@@ -212,6 +244,10 @@ vencidas permanecen como historial. El nuevo esquema guarda los pasajeros y
 asientos en `detalle_reserva` y el vencimiento en `asiento`, en lugar de los
 campos directos de la antigua tabla `reserva`.
 
+### Actualización de HU-05
+
+Al arrancar, `006_crear_pago.sql` agrega la tabla de pagos y sus restricciones sin borrar `data/app.db` ni resembrar los datos. Conserva las reservas y los vencimientos que ya estén registrados. Una reserva antigua con un vencimiento faltante no puede iniciar un pago; el sistema no inventa un plazo nuevo.
+
 ### Reinicio opcional de los datos de demostración
 
 Borra `data/app.db` y vuelve a ejecutar:
@@ -225,5 +261,6 @@ npm run db:seed
 - **HU-01** · Actividad TO-BE «Seleccionar viaje» · CU-01 «Consultar cartelera de viajes» · RP-02 · ficha `.cin324/historias/HU-01.md` · cambio `openspec/changes/hu-01-consultar-cartelera/`
 - **HU-02** · Actividades TO-BE «Seleccionar cupos e ingresar datos de pasajeros», «Verificar cupo» y «Reservar cupos seleccionados y actualizar cupos» · CU-02 «Reservar asiento» · RP-03, RP-04, RP-05 y RP-D01 (RP-11/RP-12 como contexto) · DSS-01 y EST-01 · ficha `.cin324/historias/HU-02.md` · versión inicial `openspec/changes/hu-02-registrar-reserva/` y ajuste vigente `openspec/changes/ajuste-hu-02-reserva-multiple/`
 - **HU-03** · Actividad TO-BE «Publicar viaje con su costo, hora de salida y lugar de encuentro» · CU-04 «Crear viaje» · RP-01 (RP-03 y RP-11 como contexto) · ficha `.cin324/historias/HU-03.md` · cambio `openspec/changes/hu-03-crear-viaje/`
+- **HU-05** · Actividad TO-BE «Pagar viaje» · CU-03 · RP-06 · DSS-02 y EST-01/02 · ficha `.cin324/historias/HU-05.md` · [cambio archivado](openspec/changes/archive/2026-11-22-hu-05-pagar-reserva/)
 - Historias: `04-historias-usuario.md`
 - Gherkin: `07-criterios-aceptacion.md`

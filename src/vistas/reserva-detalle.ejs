@@ -8,6 +8,43 @@
   <p class="mensaje-vacio">La reserva venció. Todos sus asientos fueron liberados.</p>
 <% } %>
 
+<h2>Pagos de la reserva</h2>
+<% if (puedeIniciarPago) { %>
+  <form action="/reservas/<%= reserva.codigoReserva %>/pagos" method="post">
+    <button class="boton" type="submit"><%= pagos.length ? 'Reintentar pago' : 'Pagar reserva' %></button>
+  </form>
+  <p>Se conservan los vencimientos originales de los asientos.</p>
+<% } %>
+<% if (pagos.length === 0) { %><p>No hay intentos de pago registrados.</p><% } %>
+<% pagos.forEach((pago) => { %>
+  <section class="detalle-viaje">
+    <h3>Intento de pago</h3>
+    <dl>
+      <dt>Identificador</dt><dd><%= pago.idPago %></dd>
+      <dt>Monto total</dt><dd><%= formatearMonto(pago.monto) %></dd>
+      <dt>Medio de pago</dt><dd><%= pago.medioPago || 'Sin seleccionar' %></dd>
+      <dt>Estado del pago</dt><dd><%= pago.estado %></dd>
+      <dt>Inicio del intento</dt><dd><%= formatearFechaHora(pago.creadoEn) %></dd>
+      <% if (pago.fechaPago) { %><dt>Fecha del pago</dt><dd><%= formatearFechaHora(pago.fechaPago) %></dd><% } %>
+    </dl>
+    <% if (pago.estado === 'Devuelto') { %>
+      <p class="mensaje-exito">La reserva venció y el monto fue devuelto.</p>
+    <% } else if (pago.solicitudDevolucionEn) { %>
+      <p class="mensaje-vacio">La reserva venció. El pago no confirmó los cupos y la devolución fue solicitada.</p>
+      <form action="/simulacion/pasarela/<%= pago.idPago %>/confirmar-devolucion" method="post">
+        <button class="boton" type="submit">Simular confirmación de devolución completa</button>
+      </form>
+      <p>Acción de la pasarela simulada: confirma la devolución completa ya solicitada automáticamente.</p>
+    <% } else if (pago.estado === 'Aprobado') { %>
+      <p class="mensaje-exito">El pago confirmó la reserva.</p>
+    <% } else if (pago.estado === 'Rechazado' || pago.estado === 'Cancelado') { %>
+      <p class="mensaje-vacio">El pago no fue completado</p>
+    <% } else { %>
+      <p><a class="boton" href="/simulacion/pasarela/<%= pago.idPago %>">Ver sesión de pasarela simulada</a></p>
+    <% } %>
+  </section>
+<% }); %>
+
 <p>
   <a class="boton" href="/cartelera">Volver a la cartelera</a>
 </p>

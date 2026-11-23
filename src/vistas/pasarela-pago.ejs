@@ -1,0 +1,27 @@
+<%- include('parciales/encabezado', { titulo: titulo }) %>
+
+<h1>Pasarela de pago simulada</h1>
+<p class="mensaje-vacio">Esta integración está simulada. No se realizan cobros reales ni se solicitan datos bancarios.</p>
+<p class="intro">Reserva registrada: <strong><%= reserva.codigoReserva %></strong>.</p>
+<%- include('parciales/reserva-info', { reserva: reserva }) %>
+<p class="cupos">Monto total: <%= formatearMonto(pago.monto) %></p>
+<p>Estado del intento: <strong><%= pago.estado %></strong>.</p>
+<% if (pago.estado === 'Pendiente') { %>
+  <p>Los plazos originales siguen corriendo. Una aprobación después del vencimiento solicita una devolución completa.</p>
+  <form class="formulario-viaje" action="/simulacion/pasarela/<%= pago.idPago %>/resultado" method="post">
+    <label>Medio de pago
+      <select name="medioPago" required>
+        <option value="">Selecciona un medio</option>
+        <% medios.forEach((medio) => { %><option value="<%= medio %>"><%= medio %></option><% }); %>
+      </select>
+    </label>
+    <div class="seleccion-asientos">
+      <button class="boton" type="submit" name="resultado" value="Aprobado">Simular pago aprobado</button>
+      <button class="boton" type="submit" name="resultado" value="Rechazado">Simular pago rechazado</button>
+      <button class="boton" type="submit" name="resultado" value="Cancelado" formnovalidate>Cancelar operación</button>
+    </div>
+  </form>
+<% } %>
+<p><a class="boton" href="/reservas/<%= reserva.codigoReserva %>">Consultar esta reserva</a></p>
+
+<%- include('parciales/pie') %>

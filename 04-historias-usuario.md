@@ -7,8 +7,8 @@ Como **pasajero**, quiero **explorar la cartelera y seleccionar un viaje disponi
 **Actividad TO-BE asociada:** Seleccionar viaje.
 
 **Criterios de aceptación:**
-- CA1: Dado que el administrador ha registrado viajes, cuando el cliente ingresa a la cartelera, entonces el sistema muestra los viajes publicados.
-- CA2: Dado que el cliente está en la cartelera, cuando selecciona un viaje, entonces el sistema muestra la información correspondiente al viaje.
+- CA1: Dado que el administrador ha registrado viajes, cuando el cliente ingresa a la cartelera, entonces el sistema muestra los viajes publicados con su información y su descripción cuando la tengan.
+- CA2: Dado que el cliente está en la cartelera, cuando selecciona un viaje, entonces el sistema muestra la información correspondiente al viaje, incluida su descripción cuando la tenga.
 - CA3: Dado que el cliente consulta un viaje, cuando se muestra su información, entonces puede conocer su disponibilidad de cupos sin solicitar una respuesta manual al administrador.
  
 ## HU-02 — Registrar reserva y pasajero

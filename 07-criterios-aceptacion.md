@@ -9,7 +9,8 @@ Característica: Consultar cartelera y disponibilidad de viajes
   Escenario: Existen Viajes disponibles
     Dado que haya viajes disponibles,
     Cuando el pasajero ingresa a la cartelera,
-    Entonces el sistema muestra los viajes publicados que estén disponibles.
+    Entonces el sistema muestra los viajes publicados que estén disponibles
+    Y muestra la descripción de cada viaje cuando la tenga.
  
   Escenario: No hay viajes disponibles
     Dado que no existan viajes disponibles,
@@ -21,7 +22,13 @@ Característica: Consultar cartelera y disponibilidad de viajes
     Dado que el pasajero se encuentra explorando la cartelera,
     Cuando selecciona un viaje específico,
     Entonces el sistema muestra la información detallada del viaje
-    Y muestra la cantidad de cupos disponibles.
+    Y muestra la cantidad de cupos disponibles
+    Y muestra la descripción del viaje cuando la tenga.
+
+  Escenario: La descripción se muestra sin restricción de rol
+    Dado que existe un viaje publicado con descripción,
+    Cuando se consulta la cartelera o el detalle del viaje,
+    Entonces el sistema muestra la descripción del viaje.
 ```
  
  

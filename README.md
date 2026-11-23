@@ -192,7 +192,7 @@ npm run typecheck
 
 En Windows PowerShell: `npm.cmd test` y `npm.cmd run typecheck`.
 
-La [verificación de HU-05](.cin324/validaciones/VER-HU-05-implementacion.md) obtuvo **135 pruebas correctas en 17 archivos**, además del chequeo de tipos. Las pruebas usan SQLite en memoria o en archivos temporales aislados.
+La [verificación de HU-05](.cin324/validaciones/VER-HU-05-implementacion.md) obtuvo **140 pruebas correctas en 17 archivos**, además del chequeo de tipos; el [ajuste documental de DSS-02 y EST-02](.cin324/validaciones/VER-HU-05-ajuste-dss-devolucion.md) reconfirmó ese resultado. Las pruebas usan SQLite en memoria o en archivos temporales aislados.
 
 - `tests/reservas.test.ts`: una prueba con el nombre de cada uno de los nueve escenarios Gherkin de HU-02, más RUT reutilizado, formularios mal formados, titularidad entre clientes, último cupo y errores de consulta.
 - `tests/reserva-repositorio.test.ts`: plazos desde selección, idempotencia, rollback completo, guardas de transición y protección de asientos reocupados.

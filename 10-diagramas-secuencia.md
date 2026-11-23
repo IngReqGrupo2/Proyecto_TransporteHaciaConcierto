@@ -33,7 +33,14 @@ Flujo y variantes representadas:
 
 Archivo fuente: [`./diagramas/dss-02.mmd`](./diagramas/dss-02.mmd)
 
-Variantes representadas:
+Flujo y variantes representadas:
 
-- `alt` Pago aprobado: la pasarela notifica la aprobación, el sistema cambia la reserva a Pagada, confirma definitivamente el cupo retenido e informa al pasajero.
-- `alt` Pago rechazado o cancelado: la pasarela notifica el rechazo o la cancelación, el sistema mantiene el cupo retenido por un tiempo límite (8 minutos), informa que el pago no fue completado y libera el cupo al vencer ese plazo.
+- Precondición: existe una reserva pendiente de pago con todos sus asientos retenidos. Cada asiento guarda su propio vencimiento de retención (8 minutos desde su selección en DSS-01).
+- Verificación inicial: el sistema comprueba que la reserva siga pendiente y todas sus retenciones estén vigentes; calcula el total (`costo del viaje × cantidad de asientos`) y crea el intento de `Pago` en estado Pendiente.
+- `alt` Reserva vencida o alguna retención vencida al iniciar: el sistema aplica el vencimiento completo de EST-01, impide iniciar el pago e informa que la reserva está vencida.
+- `alt` Pago aprobado y todas las retenciones vigentes: la pasarela notifica la aprobación, el sistema registra el `Pago` como Aprobado, cambia la reserva a Pagada, confirma todos sus asientos sin volver a descontar cupos e informa al pasajero.
+- `alt` Aprobación tardía (reserva vencida o alguna retención vencida): el sistema registra el `Pago` como Aprobado, aplica el vencimiento completo de la reserva, registra la solicitud de devolución, la solicita a la pasarela e informa que el pago no confirmó los cupos. No reactiva la reserva ni vuelve a ocupar sus asientos.
+- `opt` Confirmación de devolución completa: la pasarela confirma la devolución solicitada, el `Pago` pasa a Devuelto y el sistema informa que el monto fue devuelto. Mientras no se confirme, el `Pago` permanece Aprobado y no se presenta como devuelto.
+- `alt` Pago rechazado o cancelado: la pasarela notifica el rechazo o la cancelación, el sistema registra el `Pago` como Rechazado o Cancelado, informa que el pago no fue completado y conserva los vencimientos originales de los asientos, sin reiniciar plazos.
+- `opt` Reintento: mientras la reserva siga pendiente y todas las retenciones sigan vigentes, el pasajero puede iniciar otro intento de pago por el total; el sistema conserva el historial de intentos.
+- `par` Seguimiento de las retenciones por asiento: en paralelo al resultado del pago, si vence cualquier retención mientras la reserva sigue pendiente, el sistema marca toda la reserva como Vencida, libera todos sus asientos y restituye sus cupos.

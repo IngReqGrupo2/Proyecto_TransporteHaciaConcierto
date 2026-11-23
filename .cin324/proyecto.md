@@ -80,8 +80,14 @@
   - Un pago por el total de la reserva: costo del viaje por cantidad de asientos, sin recargo por ida y vuelta. Se permiten reintentos tras rechazo o cancelación mientras todas las retenciones originales sigan vigentes, conservando el historial.
   - Aprobar dentro del plazo confirma todos los asientos sin descontar cupos nuevamente. Rechazo o cancelación no reinician plazos ni cancelan inmediatamente la reserva; vence toda la reserva pendiente al vencer cualquiera de sus asientos.
   - La aprobación tardía registra el pago aprobado y solicita devolución completa, manteniendo la reserva vencida sin recuperar asientos. El pago permanece Aprobado hasta que la pasarela confirme la devolución y pase a Devuelto.
-  - Se aceptó usar las reglas vigentes de la historia y las decisiones de la ficha ante las diferencias documentales. Queda pendiente incorporar la alineación al BPMN TO-BE, Gherkin, DSS-02 y EST-02 cuando el estudiante lo solicite; el texto Gherkin alineado está en la ficha.
-  - Cambio implementado: `hu-05-pagar-reserva`. La aprobación y el vencimiento se coordinan mediante transacciones SQLite; repetir aprobaciones o devoluciones no duplica sus efectos. El estudiante confirmó la aceptación y el cambio se archivó sin sincronizar la especificación principal, por su elección. Revalidado en el sistema sin observaciones el 2026-11-22 (`.cin324/validaciones/VAL-HU-05-1.md`).
+  - Se aceptó usar las reglas vigentes de la historia y las decisiones de la ficha ante las diferencias documentales. La alineación de Gherkin, DSS-02 y EST-02 se incorporó el 2026-11-23; solo el BPMN TO-BE permanece sin alinear por decisión del estudiante.
+  - Cambio implementado: `hu-05-pagar-reserva`. La aprobación y el vencimiento se coordinan mediante transacciones SQLite; repetir aprobaciones o devoluciones no duplica sus efectos. El estudiante confirmó la aceptación y el cambio se archivó; la spec principal `pagos-reservas` se sincronizó el 2026-11-23. Revalidado en el sistema sin observaciones el 2026-11-22 (`.cin324/validaciones/VAL-HU-05-1.md`).
+- 2026-11-23, a pedido del estudiante (alineación documental de HU-05):
+  - Se alineó `DSS-02` (`diagramas/dss-02.mmd` y `10-diagramas-secuencia.md`) con las decisiones C9/C10 de la ficha HU-05: retenciones por asiento, aprobación tardía, solicitud y confirmación de devolución (`Pago → Devuelto`), reintento e impedimento de pago de una reserva vencida.
+  - Se reemplazaron en `07-criterios-aceptacion.md` los tres escenarios de HU-05 por los diez escenarios alineados de la ficha.
+  - Se agregó `Aprobado → Devuelto` en `11-diagramas-estado.md` y `diagramas/est-02.puml`.
+  - Se actualizó `12-trazabilidad.md` para reflejar la devolución.
+  - `diagramas/dss-02.png` y `diagramas/est-02.png` regenerados desde sus fuentes; HU-05 revalidada y ajuste documental archivado en OpenSpec como `2026-11-23-ajuste-hu-05-dss-devolucion`. Se incorporó la spec principal `pagos-reservas` a `openspec/specs/`; el BPMN TO-BE se mantiene sin cambios por decisión del estudiante.
 
 ## Stack (se define una sola vez)
 - Lenguaje y framework: TypeScript + Express + EJS
@@ -94,32 +100,33 @@
 ## Historias
 | Historia | Estado | Cambio de OpenSpec | Fecha | Observaciones |
 |----------|--------|--------------------|-------|----------------|
-| HU-01 | implementada y validada; pendiente de archivar el ajuste | `hu-01-consultar-cartelera`; `ajuste-hu-01-mostrar-capacidad` (vigente) | 2026-11-22 | Consultar cartelera (CU-01). Revalidada: mostrar `capacidad` y `cuposDisponibles`; implementado y aceptado sin observaciones (`.cin324/validaciones/VAL-HU-01-2.md`). Ficha `.cin324/historias/HU-01.md` |
-| HU-02 | implementada y validada; pendiente de archivar el cambio | `hu-02-registrar-reserva` (versión anterior); `ajuste-hu-02-reserva-multiple` (vigente) | 2026-11-22 | Reserva múltiple, retenciones desde selección, vencimiento completo y modalidad de regreso. Nueve escenarios vigentes cubiertos; 89 pruebas y tipos correctos. Migración conserva reservas anteriores. Aceptación del sistema confirmada sin observaciones (`.cin324/validaciones/VAL-HU-02-1.md`). Verificación `.cin324/validaciones/VER-HU-02-implementacion.md`; guía en README. |
-| HU-03 | implementada y validada; pendiente de archivar los ajustes | `hu-03-crear-viaje`, `ajuste-hu-03-fechas`, `ajuste-hu-03-validaciones`, `ajuste-hu-03-descripcion` | 2026-11-22 | Crear viaje (CU-04). Patente solo formato actual `AABB11`. Fechas, validaciones y `descripcion` opcional implementadas y aceptadas sin observaciones (`.cin324/validaciones/VAL-HU-03-3.md`). Ficha `.cin324/historias/HU-03.md` |
+| HU-01 | implementada, validada y archivada | `hu-01-consultar-cartelera`; `ajuste-hu-01-mostrar-capacidad` (vigente) | 2026-11-22 | Consultar cartelera (CU-01). Revalidada: mostrar `capacidad` y `cuposDisponibles`; implementado y aceptado sin observaciones (`.cin324/validaciones/VAL-HU-01-2.md`). Ficha `.cin324/historias/HU-01.md` |
+| HU-02 | implementada, validada y archivada | `hu-02-registrar-reserva` (versión anterior); `ajuste-hu-02-reserva-multiple` (vigente) | 2026-11-22 | Reserva múltiple, retenciones desde selección, vencimiento completo y modalidad de regreso. Nueve escenarios vigentes cubiertos; 89 pruebas y tipos correctos. Migración conserva reservas anteriores. Aceptación del sistema confirmada sin observaciones (`.cin324/validaciones/VAL-HU-02-1.md`). Verificación `.cin324/validaciones/VER-HU-02-implementacion.md`; guía en README. |
+| HU-03 | implementada, validada y archivada | `hu-03-crear-viaje`, `ajuste-hu-03-fechas`, `ajuste-hu-03-validaciones`, `ajuste-hu-03-descripcion` | 2026-11-22 | Crear viaje (CU-04). Patente solo formato actual `AABB11`. Fechas, validaciones y `descripcion` opcional implementadas y aceptadas sin observaciones (`.cin324/validaciones/VAL-HU-03-3.md`). Ficha `.cin324/historias/HU-03.md` |
 | HU-04 | pendiente | — | — | Visualizar pasajeros (CU-05) |
-| HU-05 | implementada, revalidada y archivada | [`hu-05-pagar-reserva`](../openspec/changes/archive/2026-11-22-hu-05-pagar-reserva/) | 2026-11-22 | Pagar reserva (CU-03, DSS-02, EST-01/02). Pasarela simulada, reintentos, devolución por aprobación tardía y pruebas de concurrencia e idempotencia. 135 pruebas correctas y chequeo de tipos aprobado. Revalidada sin observaciones (`.cin324/validaciones/VAL-HU-05-1.md`). |
+| HU-05 | implementada, revalidada y archivada | [`hu-05-pagar-reserva`](../openspec/changes/archive/2026-11-22-hu-05-pagar-reserva/) | 2026-11-22 | Pagar reserva (CU-03, DSS-02, EST-01/02). Pasarela simulada, reintentos, devolución por aprobación tardía y pruebas de concurrencia e idempotencia. 140 pruebas correctas y chequeo de tipos aprobado. Revalidada sin observaciones (`.cin324/validaciones/VAL-HU-05-1.md`). Spec `pagos-reservas` incorporada a `openspec/specs/`. |
 
 ## Validaciones
 | Historia | Informe | Estado | Fecha |
 |----------|---------|--------|-------|
 | HU-01 | `.cin324/historias/HU-01.md` | confirmada (revalidación) | 2026-11-22 |
-| HU-01 | `.cin324/validaciones/VAL-HU-01-2.md` | validada sin observaciones; pendiente archivar el ajuste | 2026-11-22 |
+| HU-01 | `.cin324/validaciones/VAL-HU-01-2.md` | validada sin observaciones; ajuste archivado el 2026-11-23 | 2026-11-22 |
 | HU-02 | `.cin324/historias/HU-02.md` | ficha y especificaciones confirmadas; implementación autorizada; no equivale a aceptación del sistema | 2026-11-22 |
 | HU-02 | `.cin324/validaciones/VER-HU-02-implementacion.md` | verificación técnica correcta; aceptación del sistema confirmada | 2026-11-22 |
-| HU-02 | `.cin324/validaciones/VAL-HU-02-1.md` | validada sin observaciones; pendiente archivar el cambio | 2026-11-22 |
+| HU-02 | `.cin324/validaciones/VAL-HU-02-1.md` | validada sin observaciones; cambio archivado el 2026-11-23 | 2026-11-22 |
 | HU-03 | `.cin324/historias/HU-03.md` | confirmada | 2026-11-22 |
-| HU-03 | `.cin324/validaciones/VAL-HU-03-3.md` | validada sin observaciones; pendiente archivar los ajustes | 2026-11-22 |
+| HU-03 | `.cin324/validaciones/VAL-HU-03-3.md` | validada sin observaciones; ajustes archivados el 2026-11-23 | 2026-11-22 |
 | HU-05 | `.cin324/historias/HU-05.md` | cinco puntos y ficha completa confirmados | 2026-11-22 |
 | HU-05 | `.cin324/validaciones/VER-HU-05-implementacion.md` | verificación técnica correcta; aceptación confirmada por el estudiante | 2026-11-22 |
-| HU-05 | `.cin324/validaciones/VAL-HU-05-1.md` | revalidada sin observaciones; alineación documental opcional pendiente | 2026-11-22 |
+| HU-05 | `.cin324/validaciones/VAL-HU-05-1.md` | revalidada sin observaciones; alineación documental completada el 2026-11-23; queda solo el BPMN TO-BE por decisión del estudiante | 2026-11-22 |
 
 
 ## Cambios posteriores
 | Cambio | Historia afectada | Motivo | Fecha |
 |--------|-------------------|--------|-------|
 | `ajuste-hu-03-fechas` | HU-03 | OBS-1 de `VAL-HU-03-1.md`: rechazar fechas inexistentes, pasadas o posteriores a 100 años | 2026-11-18 |
-| `ajuste-hu-02-reserva-multiple` | HU-02 | Artefactos actualizados en `8bb3d96`: reserva con varios detalles, retención por selección, vencimiento completo y lugar de regreso. Implementado, verificado y aceptado por el estudiante; pendiente de archivar el cambio. | 2026-11-22 |
-| `ajuste-hu-01-mostrar-capacidad` | HU-01 | Revalidación: mostrar `capacidad` junto con `cuposDisponibles` en la cartelera y el detalle. Implementado y aceptado sin observaciones; pendiente de archivar el cambio. | 2026-11-22 |
-| `ajuste-hu-03-validaciones` | HU-03 | Validaciones de patente, costo y capacidad según la ficha. Implementado y aceptado sin observaciones; pendiente de archivar el cambio. | 2026-11-22 |
-| `ajuste-hu-03-descripcion` | HU-03 | `descripcion` opcional de `Viaje`, guardada y visible en la cartelera y el detalle. Implementado y aceptado sin observaciones; pendiente de archivar el cambio. | 2026-11-22 |
+| `ajuste-hu-02-reserva-multiple` | HU-02 | Artefactos actualizados en `8bb3d96`: reserva con varios detalles, retención por selección, vencimiento completo y lugar de regreso. Implementado, verificado y aceptado por el estudiante; archivado el 2026-11-23. | 2026-11-22 |
+| `ajuste-hu-01-mostrar-capacidad` | HU-01 | Revalidación: mostrar `capacidad` junto con `cuposDisponibles` en la cartelera y el detalle. Implementado y aceptado sin observaciones; archivado el 2026-11-23. | 2026-11-22 |
+| `ajuste-hu-03-validaciones` | HU-03 | Validaciones de patente, costo y capacidad según la ficha. Implementado y aceptado sin observaciones; archivado el 2026-11-23. | 2026-11-22 |
+| `ajuste-hu-03-descripcion` | HU-03 | `descripcion` opcional de `Viaje`, guardada y visible en la cartelera y el detalle. Implementado y aceptado sin observaciones; archivado el 2026-11-23. | 2026-11-22 |
+| `ajuste-hu-05-dss-devolucion` (documental) | HU-05 | Alineación de DSS-02, Gherkin de HU-05, EST-02 y trazabilidad con las decisiones C9/C10 de la ficha. PNG regenerados; cambio OpenSpec archivado como `2026-11-23-ajuste-hu-05-dss-devolucion`; 140 pruebas correctas y typecheck sin errores (`VER-HU-05-ajuste-dss-devolucion.md`). | 2026-11-23 |

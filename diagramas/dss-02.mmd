@@ -4,36 +4,56 @@ sequenceDiagram
     participant Sistema
     participant Pasarela as Pasarela de pago (externa)
 
-    Note over Pasajero,Sistema: Precondición: reserva pendiente con todos sus asientos retenidos para el cliente
-    Note over Sistema: Cada asiento vence 8 minutos después de su selección en DSS-01
+    Note over Pasajero,Sistema: Precondición: reserva pendiente de pago con todos sus asientos retenidos para el cliente
+    Note over Sistema: Cada asiento guarda su vencimiento de retención: 8 minutos desde su selección en DSS-01
 
-    Pasajero->>Sistema: Confirma el registro de la reserva
-    Sistema-->>Pasajero: Redirige a la pasarela de pago
-    Pasajero->>Pasarela: Ingresa datos de tarjeta de crédito o débito y paga
+    Pasajero->>Sistema: Confirma el registro de la reserva o solicita un nuevo intento
+    Sistema->>Sistema: Verifica que la reserva siga pendiente y todas sus retenciones vigentes
 
-    par Seguimiento de las retenciones
-        opt Vence cualquier retención mientras la reserva sigue pendiente
-            Sistema->>Sistema: Marca toda la reserva como Vencida
-            Sistema->>Sistema: Libera todos sus asientos y restituye sus cupos
-        end
-    and Resultado del pago
-        alt Pago aprobado
-            Pasarela-->>Sistema: Notifica pago aprobado
-            Sistema->>Sistema: Registra el pago aprobado
+    alt Reserva vencida o alguna retención vencida
+        Sistema->>Sistema: Aplica el vencimiento completo de EST-01
+        Sistema-->>Pasajero: Impide iniciar el pago e informa que la reserva está vencida
+    else Reserva pendiente y todas las retenciones vigentes
+        Sistema->>Sistema: Calcula el total (costo del viaje × cantidad de asientos) y crea el intento de Pago (Pendiente)
+        Sistema-->>Pasajero: Redirige a la pasarela de pago
+        Pasajero->>Pasarela: Ingresa tarjeta de crédito o débito y paga
 
-            alt Reserva pendiente y todas las retenciones vigentes
+        par Seguimiento de las retenciones por asiento
+            opt Vence cualquier retención mientras la reserva sigue pendiente
+                Sistema->>Sistema: Marca toda la reserva como Vencida
+                Sistema->>Sistema: Libera todos sus asientos y restituye sus cupos
+            end
+        and Resultado del pago
+            alt Pago aprobado y todas las retenciones vigentes
+                Pasarela-->>Sistema: Notifica pago aprobado
+                Sistema->>Sistema: Registra el Pago como Aprobado
                 Sistema->>Sistema: Actualiza la reserva a Pagada
                 Sistema->>Sistema: Confirma todos sus asientos sin descontar cupos nuevamente
                 Sistema-->>Pasajero: Informa que el pago confirmó la reserva
-            else Reserva vencida o alguna retención vencida
-                Sistema->>Sistema: Si sigue pendiente, aplica el vencimiento completo de EST-01
-                Sistema-->>Pasajero: Informa que la reserva está vencida y el pago no confirmó los cupos
+            else Pago aprobado con la reserva vencida (aprobación tardía)
+                Pasarela-->>Sistema: Notifica pago aprobado
+                Sistema->>Sistema: Registra el Pago como Aprobado y aplica el vencimiento completo de EST-01
+                Sistema->>Sistema: Registra la solicitud de devolución y mantiene el Pago en Aprobado
+                Sistema->>Pasarela: Solicita la devolución del monto completo
+                Sistema-->>Pasajero: Informa que la reserva venció, el pago no confirmó los cupos y la devolución fue solicitada
                 Note over Sistema: No reactiva la reserva ni vuelve a ocupar sus asientos
+                opt La pasarela confirma la devolución completa
+                    Pasarela-->>Sistema: Confirma la devolución completa
+                    Sistema->>Sistema: Actualiza el Pago a Devuelto
+                    Sistema-->>Pasajero: Informa que la reserva venció y el monto fue devuelto
+                end
+                Note over Sistema: Mientras no se confirme, el Pago permanece Aprobado y no se informa como devuelto
+            else Pago rechazado o cancelado por el pasajero
+                Pasarela-->>Sistema: Notifica rechazo o cancelación
+                Sistema->>Sistema: Registra el Pago como Rechazado o Cancelado
+                Sistema-->>Pasajero: Informa que el pago no fue completado
+                Note over Sistema: Conserva los vencimientos originales de los asientos, sin reiniciar plazos
             end
-        else Pago rechazado o cancelado por el pasajero
-            Pasarela-->>Sistema: Notifica rechazo o cancelación
-            Sistema->>Sistema: Registra el resultado del pago
-            Sistema-->>Pasajero: Informa que el pago no fue completado
-            Note over Sistema: Conserva los vencimientos originales de los asientos, sin reiniciar plazos
+        end
+
+        opt Reintento tras rechazo o cancelación, con la reserva pendiente y retenciones vigentes
+            Pasajero->>Sistema: Solicita un nuevo intento de pago
+            Sistema->>Sistema: Crea otro intento de Pago por el total y conserva el historial de intentos
+            Pasajero->>Pasarela: Realiza el nuevo pago en la pasarela
         end
     end

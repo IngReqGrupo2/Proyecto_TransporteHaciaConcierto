@@ -245,3 +245,25 @@ Característica: Procesar pagos y actualizar reservas
     Y mantiene la reserva "Vencida" y sus asientos liberados
     Y informa al pasajero que su reserva venció y el monto fue devuelto.
 ```
+ 
+## HU-06 — Creación de viaje con Megabus.
+Como Gerente quiero recibir solicitudes de viajes que usen megabus para decidir si aprobarlos o no.
+
+```gherkin
+Característica: Creación de viaje con megabus.
+
+  Escenario: Se solicita un viaje con megabus
+Dado que un Administrador cree un viaje con un megabus
+Cuando haya confirmado el viaje Entonces el viaje debe ser enviado al gerente para su revisión previo a ser confirmado para la cartelera.
+
+Escenario: Se necesita confirmar un viaje con megabus.
+Dado que el Gerente haya recibido una solicitud del viaje con megabus
+Cuando la marque como aprobada
+Entonces el viaje aparecerá en la cartelera. 
+
+Escenario: Se necesita confirmar un viaje con megabus.
+Dado que el Gerente haya recibido una solicitud del viaje con megabus
+Cuando la marque como rechazada
+Entonces el viaje será descartado,
+Y no será subido a la cartelera.
+```

@@ -1,0 +1,29 @@
+@startuml
+title EST-03 — Ciclo de vida de Solicitud
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam state {
+  BackgroundColor #EDF3FC
+  BorderColor #42658C
+  FontColor #172C44
+}
+hide empty description
+
+state "Pendiente de aprobacion" as Pendiente
+state "Aprobada" as Aprobada
+state "Rechazada" as Rechazada
+
+[*] --> Pendiente : registrarSolicitud\n[datos obligatorios de un viaje para Administrador] /\n regsitra la solicitud con un codigo unico y sus detalles, /\n asociar el viaje y solicitar notificacion por cada viaje solicitado.                            
+
+Pendiente --> Aprobada : solicitudAprobada\n[solicitud aprobada por el gerente]/\n confirmar la creación del viaje y \n se le notifica al Administrador que el viaje ya esta disponible en cartelera.
+
+Pendiente --> Rechazada : solicitudRechazada\n[solicitud rechazada por el cliente] /\n rechaza la creación del viaje y \n se le notifica al Administrador
+
+Aprobada --> [*]
+Rechazada --> [*]
+
+note left of Aprobada
+ La aprobación confirma la creación
+ del viaje con un megabus de 45 asientos.
+end note
+@enduml

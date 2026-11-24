@@ -69,13 +69,13 @@ Como **pasajero**, quiero **pagar mi reserva de forma online utilizando distinto
 - CA5: Dado que una reserva ha vencido, cuando el sistema recibe una aprobación de pago para ella, entonces registra el pago aprobado y solicita automáticamente a la pasarela la devolución del monto completo, manteniendo la reserva vencida y sin volver a ocupar sus asientos.
 - CA6: Dado que se solicitó la devolución de un pago aprobado para una reserva vencida, cuando la pasarela confirma la devolución completa, entonces el sistema actualiza el pago a "Devuelto" e informa al pasajero que su reserva venció y el monto fue devuelto.
 
-##HU-06 -- Crear viaje con Megabus**
+## HU-06 -- Crear viaje con Megabus
 
 Como **Gerente** quiero **recibir solicitudes de viajes que usen megabus** para **decidir si aprobarlos o no.**
 
 **Actividad TO-BE asociada:** Publicar viaje con su costo, hora de salida y lugar de encuentro.
 
-**Criterios de Aceptación: **
+**Criterios de Aceptación:**
 
 - CA1: Dado que un Administrador cree un viaje con un megabus, cuando haya confirmado el viaje, entonces el viaje debe ser enviado al gerente para su revisión previo a ser confirmado para la cartelera.
 - CA2: Dado que el Gerente haya recibido una solicitud del viaje con megabus, cuando la marque como aprobada, entonces el viaje aparecerá en la cartelera.

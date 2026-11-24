@@ -1,0 +1,20 @@
+sequenceDiagram
+  autonumber
+  actor Administrador
+  participant Sistema
+  actor Gerente
+ 
+  alt Creación de viaje con minibús
+    Administrador->>Sistema: Crea viaje con minibús
+    Sistema-->>Administrador: Aprueba Viaje
+  else Creación de viaje con megabús (aprobado)
+    Administrador->>Sistema: Crea viaje con megabús
+    Sistema->>Gerente: Manda para aprobar viaje
+    Gerente-->>Sistema: Aprueba Viaje
+    Sistema-->>Administrador: Muestra viaje aprobado
+  else Creación de viaje con megabús (rechazado)
+    Administrador->>Sistema: Crea viaje con megabús
+    Sistema->>Gerente: Manda para aprobar viaje
+    Gerente-->>Sistema: Rechaza Viaje
+    Sistema-->>Administrador: Muestra viaje rechazado
+  end

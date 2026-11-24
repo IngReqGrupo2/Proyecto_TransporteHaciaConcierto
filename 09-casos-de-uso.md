@@ -9,7 +9,7 @@
 | Servicio de correo | Sistema externo | Servicio que envía al pasajero la confirmación de su reserva. |
  
 ## Diagrama de casos de uso
-![Casos de uso](diagramas/casos-de-uso.png)
+![Casos de uso](diagramas/casos-de-uso2.png)
  
 Archivo fuente: [`./diagramas/casos-de-uso.drawio`](./diagramas/casos-de-uso.drawio)
  

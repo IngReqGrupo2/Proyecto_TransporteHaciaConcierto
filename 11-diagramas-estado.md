@@ -48,3 +48,25 @@ Archivo fuente: [`./diagramas/est-02.puml`](./diagramas/est-02.puml)
 | Devuelto | Finalización del ciclo | — | — | Final |
 
 Las salidas desde **Aprobado** son mutuamente excluyentes según el estado de la reserva: si la reserva quedó **Pagada**, el pago finaliza; si quedó **Vencida**, permanece **Aprobado** mientras la devolución no esté confirmada y luego pasa a **Devuelto**. No se agrega un estado «Devolución pendiente». La devolución no genera una transición de `Reserva`: esta permanece **Vencida**.
+
+## EST-03 — Ciclo de aprobación de un viaje con megabús
+
+- Clase del dominio relacionada: [`Viaje`](./08-modelo-dominio.md). El diagrama actual llama «Solicitud» al objeto que pasa por la aprobación.
+- Historia relacionada: [HU-06 — Crear viaje con megabús](./04-historias-usuario.md#hu-06----crear-viaje-con-megabus).
+- Diagrama de secuencia relacionado: [DSS-03](./diagramas/dss-03.mmd), en las ramas de aprobación y rechazo del viaje con megabús.
+
+![EST-03 — Ciclo de aprobación de un viaje con megabús](./diagramas/est-03.png)
+
+Archivo fuente: [`./diagramas/est-03.puml`](./diagramas/est-03.puml)
+
+### Tabla de transiciones
+
+| Estado origen | Evento | Guarda | Acción | Estado destino |
+|---|---|---|---|---|
+| Inicial | `registrarSolicitud` | El Administrador confirma un viaje con megabús con los datos obligatorios completos | Registrar la solicitud asociada al viaje y enviarla al Gerente para revisión, sin publicar el viaje. | Pendiente de aprobación |
+| Pendiente de aprobación | `solicitudAprobada` | El Gerente aprueba la solicitud | Publicar el viaje en la cartelera y mostrar el resultado al Administrador. | Aprobada |
+| Pendiente de aprobación | `solicitudRechazada` | El Gerente rechaza la solicitud | Descartar la publicación del viaje y mostrar el resultado al Administrador. | Rechazada |
+| Aprobada | Finalización del ciclo | — | — | Final |
+| Rechazada | Finalización del ciclo | — | — | Final |
+
+El viaje con minibús no pasa por este ciclo de aprobación. La imagen y el archivo fuente aún mencionan al «cliente» en el rechazo; según HU-06 y DSS-03, esa decisión corresponde al Gerente. La nota del diagrama sobre los 45 asientos no figura en los criterios de aceptación de HU-06 y queda pendiente de confirmación.

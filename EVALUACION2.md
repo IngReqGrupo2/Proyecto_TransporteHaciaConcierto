@@ -7,3 +7,11 @@ Se crea un nuevo diagrama de estado con respecto a la aprobación del gerente a 
 Se crea un diagrama de secuencia sobre la creación de un viaje con el alt de si es un minibús o megabús.
 
 Agregar Gerente a casos de uso y colocarle Aprobar Megabús y en Administrador que pueda ver el estado de aprobación.
+
+Responsabilidades:
+HU y Gherkin - Felipe Ossandón y Eduardo Blanchard
+Modelo de dominio - Felipe Rojas
+Casos de uso - Felipe Ossandón y Felipe Rojas
+Diagramas de secuencia - Felipe Rojas
+Diagramas de estado - Sebastian
+Trazabilidad - Eduardo Blanchard

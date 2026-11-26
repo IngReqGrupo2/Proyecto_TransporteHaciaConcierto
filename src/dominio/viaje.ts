@@ -13,6 +13,9 @@ export interface Vehiculo {
   capacidadPasajeros: number;
 }
 
+export type TipoVehiculo = 'Minibús' | 'Megabús';
+export type EstadoAprobacion = 'Pendiente' | 'Aprobado' | 'Rechazado';
+
 export interface Viaje {
   idViaje: string;
   idEvento: number;
@@ -31,6 +34,8 @@ export interface Viaje {
 }
 
 export interface ViajeConEvento extends Viaje {
+  estadoAprobacion: EstadoAprobacion;
+  tipoVehiculo: TipoVehiculo;
   eventoNombre: string;
   eventoFecha: string;
   vehiculoModelo: string;
@@ -50,6 +55,7 @@ export interface DatosNuevoViaje {
   asistente: string;
   modeloVehiculo: string;
   patente: string;
+  tipoVehiculo: string;
 }
 
 export class ErrorValidacion extends Error {
@@ -62,7 +68,7 @@ export class ErrorValidacion extends Error {
   }
 }
 
-export const CAPACIDAD_MAXIMA = 17;
+const CAPACIDADES = { 'Minibús': 17, 'Megabús': 45 } as const;
 
 type CampoObligatorio = Exclude<keyof DatosNuevoViaje, 'descripcion'>;
 
@@ -78,6 +84,7 @@ const ETIQUETAS: Record<CampoObligatorio, string> = {
   asistente: 'asistente',
   modeloVehiculo: 'modelo del vehículo',
   patente: 'patente',
+  tipoVehiculo: 'tipo de vehículo',
 };
 
 const CAMPOS_OBLIGATORIOS = Object.keys(ETIQUETAS) as Array<
@@ -167,6 +174,7 @@ export function normalizarDatosNuevoViaje(
     asistente: datos.asistente.trim(),
     modeloVehiculo: datos.modeloVehiculo.trim(),
     patente: normalizarPatente(datos.patente),
+    tipoVehiculo: datos.tipoVehiculo.trim(),
   };
 }
 
@@ -183,6 +191,8 @@ const COLUMNAS_VIAJE = `
   v.capacidad AS capacidad,
   v.cupos_disponibles AS cuposDisponibles,
   v.estado AS estado,
+  v.estado_aprobacion AS estadoAprobacion,
+  ve.tipo AS tipoVehiculo,
   v.conductor_asignado AS conductorAsignado,
   v.asistente_asignado AS asistenteAsignado,
   e.nombre AS eventoNombre,
@@ -219,6 +229,32 @@ export class ViajeRepositorio {
       .get(idViaje) as ViajeConEvento | undefined;
   }
 
+  buscarPorId(idViaje: string): ViajeConEvento | undefined {
+    return this.db.prepare(`SELECT ${COLUMNAS_VIAJE} FROM viaje v
+      JOIN evento e ON e.id_evento = v.id_evento
+      JOIN vehiculo ve ON ve.id_vehiculo = v.id_vehiculo
+      WHERE v.id_viaje = ?`).get(idViaje) as ViajeConEvento | undefined;
+  }
+
+  listarPendientesDeAprobacion(): ViajeConEvento[] {
+    return this.db.prepare(`SELECT ${COLUMNAS_VIAJE} FROM viaje v
+      JOIN evento e ON e.id_evento = v.id_evento JOIN vehiculo ve ON ve.id_vehiculo = v.id_vehiculo
+      WHERE ve.tipo = 'Megabús' AND v.estado_aprobacion = 'Pendiente'
+      ORDER BY v.fecha_viaje, v.id_viaje`).all() as ViajeConEvento[];
+  }
+
+  decidirAprobacion(idViaje: string, decision: 'Aprobado' | 'Rechazado', rutGerente: string) {
+    return this.db.transaction(() => {
+      const resultado = this.db.prepare(`UPDATE viaje SET estado_aprobacion = ?,
+        estado = CASE WHEN ? = 'Aprobado' THEN 'Publicado' ELSE estado END, rut_gerente = ?
+        WHERE id_viaje = ? AND estado_aprobacion = 'Pendiente'
+        AND id_vehiculo IN (SELECT id_vehiculo FROM vehiculo WHERE tipo = 'Megabús')`)
+        .run(decision, decision, rutGerente, idViaje);
+      if (resultado.changes === 1) return 'resuelto';
+      return this.buscarPorId(idViaje)?.tipoVehiculo === 'Megabús' ? 'ya-resuelto' : 'no-encontrado';
+    }).immediate();
+  }
+
   crearViaje(datos: DatosNuevoViaje): ViajeConEvento {
     const limpios = normalizarDatosNuevoViaje(datos);
     const descripcion = limpios.descripcion === '' ? null : limpios.descripcion;
@@ -235,6 +271,12 @@ export class ViajeRepositorio {
       );
     }
 
+    const tipo = limpios.tipoVehiculo;
+    if (tipo !== 'Minibús' && tipo !== 'Megabús') {
+      throw new ErrorValidacion(['tipoVehiculo'], 'Selecciona minibús o megabús.');
+    }
+    const capacidad = CAPACIDADES[tipo];
+    const requiereAprobacion = tipo === 'Megabús';
     const ahora = new Date();
     const eventoFechaValida = validarFechaCalendario(
       limpios.eventoFecha,
@@ -314,21 +356,22 @@ export class ViajeRepositorio {
       if (!vehiculo) {
         const insertado = this.db
           .prepare(
-            'INSERT INTO vehiculo (modelo, patente, capacidad_pasajeros) VALUES (?, ?, ?)',
+            'INSERT INTO vehiculo (modelo, patente, capacidad_pasajeros, tipo) VALUES (?, ?, ?, ?)',
           )
-          .run(limpios.modeloVehiculo, limpios.patente, CAPACIDAD_MAXIMA);
+          .run(limpios.modeloVehiculo, limpios.patente, capacidad, tipo);
         vehiculo = {
           idVehiculo: Number(insertado.lastInsertRowid),
           modelo: limpios.modeloVehiculo,
           patente: limpios.patente,
-          capacidadPasajeros: CAPACIDAD_MAXIMA,
+          capacidadPasajeros: capacidad,
+          tipo,
         };
       }
 
-      if (vehiculo.capacidadPasajeros > CAPACIDAD_MAXIMA) {
+      if (vehiculo.tipo !== tipo) {
         throw new ErrorValidacion(
-          ['patente'],
-          'La capacidad del vehículo no puede superar los 17 pasajeros.',
+          ['tipoVehiculo'],
+          'La patente ya está registrada con otro tipo de vehículo.',
         );
       }
 
@@ -338,9 +381,9 @@ export class ViajeRepositorio {
           INSERT INTO viaje (
             id_viaje, id_evento, id_vehiculo, descripcion, fecha_viaje,
             hora_salida, hora_regreso, lugar_encuentro, costo, capacidad,
-            cupos_disponibles, estado, conductor_asignado, asistente_asignado
+            cupos_disponibles, estado, conductor_asignado, asistente_asignado, estado_aprobacion
           )
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Publicado', ?, ?)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `)
         .run(
           idViaje,
@@ -352,17 +395,19 @@ export class ViajeRepositorio {
           limpios.horaRegreso,
           limpios.lugarEncuentro,
           costo,
-          vehiculo.capacidadPasajeros,
-          vehiculo.capacidadPasajeros,
+          capacidad,
+          capacidad,
+          requiereAprobacion ? 'Borrador' : 'Publicado',
           limpios.conductor,
           limpios.asistente,
+          requiereAprobacion ? 'Pendiente' : 'Aprobado',
         );
 
       const insertarAsiento = this.db.prepare(`
         INSERT INTO asiento (id_viaje, numero)
         VALUES (?, ?)
       `);
-      for (let numero = 1; numero <= vehiculo.capacidadPasajeros; numero += 1) {
+      for (let numero = 1; numero <= capacidad; numero += 1) {
         insertarAsiento.run(idViaje, numero);
       }
 
@@ -370,21 +415,21 @@ export class ViajeRepositorio {
     });
 
     const idViaje = crear();
-    return this.buscarPublicadoPorId(idViaje) as ViajeConEvento;
+    return this.buscarPorId(idViaje) as ViajeConEvento;
   }
 
-  private buscarVehiculoPorPatente(patente: string): Vehiculo | undefined {
+  private buscarVehiculoPorPatente(patente: string): (Vehiculo & { tipo: TipoVehiculo }) | undefined {
     return this.db
       .prepare(`
         SELECT
           id_vehiculo AS idVehiculo,
           modelo,
           patente,
-          capacidad_pasajeros AS capacidadPasajeros
+          capacidad_pasajeros AS capacidadPasajeros, tipo
         FROM vehiculo
         WHERE patente = ?
       `)
-      .get(patente) as Vehiculo | undefined;
+      .get(patente) as (Vehiculo & { tipo: TipoVehiculo }) | undefined;
   }
 
   private siguienteIdViaje(): string {

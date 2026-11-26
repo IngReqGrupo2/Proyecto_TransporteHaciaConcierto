@@ -3,7 +3,7 @@
 <p><a class="volver" href="/cartelera">← Volver a la cartelera</a></p>
 
 <h1>Crear viaje</h1>
-<p class="intro">Registra el evento, los datos del traslado y el vehículo. El viaje queda publicado en la cartelera con los cupos disponibles del vehículo (máximo 17 pasajeros).</p>
+<p class="intro">Los viajes en minibús (17 asientos) se publican al registrarse. Los viajes en megabús (45 asientos) requieren aprobación del Gerente.</p>
 
 <% if (error) { %>
   <p class="mensaje-error" role="alert"><%= error %></p>
@@ -77,7 +77,16 @@
     </label>
   </fieldset>
 
-  <button class="boton" type="submit">Publicar viaje</button>
+  <label>Tipo de vehículo
+    <select name="tipoVehiculo" required<%- atributosDe('tipoVehiculo') %>>
+      <option value="">Selecciona un tipo</option>
+      <% for (const tipo of ['Minibús', 'Megabús']) { %>
+        <option value="<%= tipo %>"<%= valores.tipoVehiculo === tipo ? ' selected' : '' %>><%= tipo %></option>
+      <% } %>
+    </select>
+    <% if (mensajeDe('tipoVehiculo')) { %><span class="mensaje-campo" role="alert"><%= mensajeDe('tipoVehiculo') %></span><% } %>
+  </label>
+  <button class="boton" type="submit">Registrar viaje</button>
 </form>
 
 <%- include('../parciales/pie') %>

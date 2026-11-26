@@ -7,13 +7,21 @@ import { ReservaRepositorio } from '../src/dominio/reserva';
 import { crearBaseDePrueba, sembrarViaje } from './ayudas';
 
 describe('HU-05 · Migración aditiva de Pago', () => {
-  it('conserva los datos existentes y aplica una sola vez la migración 006', () => {
+  it('preserva reservas al aplicar 006 a una base sin pagos', () => {
+    const db = crearBaseDePrueba();
+    try {
+      expect(db.prepare("SELECT * FROM schema_migrations WHERE nombre = '006_crear_pago.sql'").all()).toHaveLength(1);
+      expect(db.prepare('SELECT * FROM pago').all()).toEqual([]);
+    } finally { db.close(); }
+  });
+
+  it('conserva viajes, reservas y pagos existentes tras la migración 007', () => {
     const db = new Database(':memory:');
     db.pragma('foreign_keys = ON');
     try {
       db.exec('CREATE TABLE schema_migrations (nombre TEXT PRIMARY KEY, aplicada_en TEXT NOT NULL)');
       const directorio = path.join(process.cwd(), 'src/db/migrations');
-      for (const nombre of fs.readdirSync(directorio).filter((n) => n.endsWith('.sql') && n < '006').sort()) {
+      for (const nombre of fs.readdirSync(directorio).filter((n) => n.endsWith('.sql') && n < '007').sort()) {
         db.exec(fs.readFileSync(path.join(directorio, nombre), 'utf8'));
         db.prepare('INSERT INTO schema_migrations VALUES (?, ?)').run(nombre, '2026-11-22');
       }
@@ -23,13 +31,23 @@ describe('HU-05 · Migración aditiva de Pago', () => {
       repo.registrarReserva('V-001', 'A', { pasajeros: [{ idAsiento: '1', rut: '123K', nombres: 'Ana',
         apellidos: 'Rojas', telefono: '123', correoElectronico: 'ana@ejemplo.cl' }], idaYVuelta: false, lugarRegreso: '' });
       repo.retenerAsiento('V-001', '2', 'B');
-      const tablas = ['reserva', 'detalle_reserva', 'pasajero', 'asiento', 'viaje'];
-      const antes = tablas.map((t) => db.prepare(`SELECT * FROM ${t}`).all());
+      db.exec(`UPDATE vehiculo SET capacidad_pasajeros = 10;
+        UPDATE viaje SET capacidad = 10, cupos_disponibles = 8;
+        DELETE FROM asiento WHERE numero > 10;
+        INSERT INTO pago (id_pago,id_reserva,monto,creado_en,referencia_pasarela)
+        VALUES ('P1',1,15000,'2026-11-22','REF-1');`);
+      const tablas = ['reserva', 'detalle_reserva', 'pasajero', 'asiento', 'pago'];
+      const historial = () => tablas.map((t) => db.prepare(`SELECT * FROM ${t}`).all());
+      const antes = historial();
       aplicarMigraciones(db);
       aplicarMigraciones(db);
-      expect(tablas.map((t) => db.prepare(`SELECT * FROM ${t}`).all())).toEqual(antes);
-      expect(db.prepare('SELECT * FROM pago').all()).toEqual([]);
+      expect(historial()).toEqual(antes);
+      expect(db.prepare('SELECT id_viaje, capacidad, cupos_disponibles, estado_aprobacion FROM viaje').get())
+        .toEqual({ id_viaje: 'V-001', capacidad: 10, cupos_disponibles: 8, estado_aprobacion: 'Aprobado' });
+      expect(db.prepare('SELECT tipo, capacidad_pasajeros FROM vehiculo').get())
+        .toEqual({ tipo: 'Minibús', capacidad_pasajeros: 17 });
       expect(db.prepare("SELECT * FROM schema_migrations WHERE nombre = '006_crear_pago.sql'").all()).toHaveLength(1);
+      expect(db.prepare("SELECT * FROM schema_migrations WHERE nombre = '007_aprobacion_viajes.sql'").all()).toHaveLength(1);
       expect(db.pragma('foreign_key_check')).toEqual([]);
     } finally { db.close(); }
   });

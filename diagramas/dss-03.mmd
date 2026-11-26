@@ -3,18 +3,29 @@ sequenceDiagram
   actor Administrador
   participant Sistema
   actor Gerente
- 
-  alt Creación de viaje con minibús
-    Administrador->>Sistema: Crea viaje con minibús
-    Sistema-->>Administrador: Aprueba Viaje
-  else Creación de viaje con megabús (aprobado)
-    Administrador->>Sistema: Crea viaje con megabús
-    Sistema->>Gerente: Manda para aprobar viaje
-    Gerente-->>Sistema: Aprueba Viaje
-    Sistema-->>Administrador: Muestra viaje aprobado
-  else Creación de viaje con megabús (rechazado)
-    Administrador->>Sistema: Crea viaje con megabús
-    Sistema->>Gerente: Manda para aprobar viaje
-    Gerente-->>Sistema: Rechaza Viaje
-    Sistema-->>Administrador: Muestra viaje rechazado
+
+  Administrador->>Sistema: Confirma el registro con los datos y el tipo de vehículo
+  alt Datos inválidos
+    Sistema-->>Administrador: Muestra los errores sin registrar el viaje
+  else Minibús con datos válidos
+    Sistema->>Sistema: Registra 17 asientos y publica el viaje como Aprobado
+    Sistema-->>Administrador: Confirma el registro y la publicación
+  else Megabús con datos válidos
+    Sistema->>Sistema: Registra 45 asientos y deja el viaje Pendiente sin publicar
+    Sistema-->>Administrador: Confirma el registro y muestra Pendiente
+    Gerente->>Sistema: Consulta los viajes pendientes de aprobación
+    Sistema-->>Gerente: Muestra solo megabuses pendientes y sus datos
+    alt El Gerente aprueba
+      Gerente->>Sistema: Aprueba el viaje pendiente
+      Sistema->>Sistema: Marca Aprobado y publica el viaje
+      Sistema-->>Gerente: Confirma la aprobación y la publicación
+    else El Gerente rechaza
+      Gerente->>Sistema: Rechaza el viaje pendiente
+      Sistema->>Sistema: Marca Rechazado y conserva el viaje sin publicar
+      Sistema-->>Gerente: Confirma el rechazo
+    end
+  end
+  opt El Administrador consulta un viaje registrado
+    Administrador->>Sistema: Consulta el estado de aprobación del viaje
+    Sistema-->>Administrador: Muestra Pendiente, Aprobado o Rechazado según corresponda
   end

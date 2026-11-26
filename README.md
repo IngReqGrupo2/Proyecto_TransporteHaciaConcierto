@@ -1,6 +1,6 @@
 # Transporte hacia Concierto
 
-Aplicación web del proyecto de Ingeniería de Requisitos (CIN 324). Historias implementadas: **HU-01 — Consultar la cartelera de viajes**, **HU-02 — Registrar reserva y pasajero**, **HU-03 — Crear un viaje en el sistema** y **HU-05 — Pagar reserva**. Para probar los pagos, sigue la [guía de HU-05](#validación-manual-de-hu-05).
+Aplicación web del proyecto de Ingeniería de Requisitos (CIN 324). Historias implementadas: **HU-01 — Consultar la cartelera de viajes**, **HU-02 — Registrar reserva y pasajero**, **HU-03 — Crear un viaje en el sistema**, **HU-05 — Pagar reserva** y **HU-06 — Aprobar o rechazar viajes con megabús**.
 
 ## Stack
 
@@ -31,15 +31,16 @@ npm install --ignore-scripts
 npm run db:seed
 ```
 
-El script es idempotente y carga tres eventos, dos vehículos y tres viajes:
+El script es idempotente y carga cuatro eventos, tres vehículos, cuatro viajes y un Gerente de demostración:
 
 | Viaje | Vehículo | Estado | Cupos | Uso |
 |-------|----------|--------|-------|-----|
 | `V-001` | `LKPW42` · Mercedes-Benz Sprinter (17) | Publicado | 17 | Aparece en la cartelera y permite reservar sus asientos |
-| `V-002` | `BJYR68` · Hyundai H1 (10) | Borrador | 10 | No aparece; su detalle responde 404 |
+| `V-002` | `BJYR68` · Minibús (17) | Borrador | 17 en base nueva | No aparece; su detalle responde 404 |
 | `V-003` | `LKPW42` · Mercedes-Benz Sprinter (17) | Borrador | 17 | No aparece; su detalle responde 404 |
+| `DEMO-MEGABUS` | `MGBS45` · Megabús (45) | Pendiente de aprobación | 45 | Aparece en la bandeja del Gerente hasta que se resuelva |
 
-Cada viaje genera sus asientos al ser creado y el seed también los crea: `V-001` tiene 17 asientos, `V-002` tiene 10 y `V-003` tiene 17. Los tres viajes de ejemplo incluyen una descripción.
+En una base migrada, los viajes históricos conservan sus asientos y cupos, aunque la capacidad registrada del vehículo se haya actualizado.
 
 Repetir el seed conserva las retenciones, reservas e historial de pagos existentes. Los cupos se
 recalculan desde los asientos libres después de procesar los vencimientos;
@@ -63,7 +64,7 @@ npm.cmd run db:seed; if ($?) { npm.cmd run dev }
 Si necesitas instalar dependencias por primera vez, ejecuta `npm.cmd install`.
 Para arrancar con tus datos existentes sin volver a sembrar, usa `npm.cmd run dev`.
 Al abrir la aplicación verás la cartelera con el rol de demostración Pasajero;
-«Crear viaje» abre el formulario del rol Administrador.
+«Crear viaje» abre el formulario del Administrador y «Revisar viajes» abre la bandeja del Gerente.
 
 ## Rutas
 
@@ -80,8 +81,11 @@ Al abrir la aplicación verás la cartelera con el rol de demostración Pasajero
 | `GET /simulacion/pasarela/:idPago` | Muestra el resumen, total y controles de la pasarela simulada para el intento existente; responde 404 si no existe |
 | `POST /simulacion/pasarela/:idPago/resultado` | Procesa aprobación, rechazo o cancelación simulados; responde 303 a la consulta, 400 si el resultado o medio es inválido o contradictorio, o 404 si no existe el intento |
 | `POST /simulacion/pasarela/:idPago/confirmar-devolucion` | Simula la confirmación externa de una devolución ya solicitada; responde 303 a la consulta, 400 si no corresponde o 404 si no existe el intento |
-| `GET /admin/viajes/nuevo` | Formulario para crear y publicar un viaje con el rol de demostración «Administrador» |
+| `GET /admin/viajes/nuevo` | Formulario de registro del viaje y selección del tipo de vehículo |
 | `POST /admin/viajes` | Valida y crea el evento, el vehículo y el viaje; responde 201 con la confirmación o 400 con los errores |
+| `GET /admin/viajes/:idViaje` | Consulta administrativa del estado de aprobación |
+| `GET /gerente/viajes/pendientes` | Lista de viajes con megabús por revisar |
+| `POST /gerente/viajes/:idViaje/decision` | Aprueba o rechaza; responde 409 si el viaje ya fue resuelto |
 
 No hay autenticación real: la cabecera indica «Rol de demostración: Pasajero» y las rutas `/admin` muestran «Administrador». El Servicio de correo se simula: cada notificación de registro exitoso queda en la tabla `integraciones_log`, pero no se envía un correo real.
 
@@ -108,10 +112,10 @@ antigua con un pasajero plano sin retención previa.
 - La fecha del viaje no puede ser posterior a la fecha del evento; el mismo día está permitido.
 - El nombre del conductor y el del asistente deben contener al menos una letra (no pueden ser solo números).
 - Cuando una validación falla, el mensaje aparece junto al campo afectado y el campo queda marcado como inválido, además del mensaje general.
-- La capacidad se toma del vehículo y no puede superar los 17 pasajeros; los cupos disponibles iniciales son iguales a la capacidad.
-- Si la patente ya existe, se reutiliza el vehículo registrado.
+- La capacidad depende del tipo: 17 para minibús y 45 para megabús. Los cupos iniciales son iguales a la capacidad.
+- Si la patente ya existe, se reutiliza el vehículo si coincide el tipo; si no, se rechaza el registro.
 - El identificador del viaje es consecutivo: `V-001`, `V-002`, etc.
-- El viaje genera sus asientos `1..capacidad` (máximo 17).
+- El viaje genera sus asientos de `1` a su capacidad. El minibús se publica al registrarlo; el megabús se envía a revisión sin publicarlo.
 
 ### Validaciones al reservar
 
@@ -182,6 +186,15 @@ Abre <http://localhost:3000/cartelera/V-001/reservar> con los datos de ejemplo c
 | Devolución completa confirmada | Pulsa «Simular confirmación de devolución completa». | El pago pasa a **Devuelto**, la reserva sigue **Vencida** y se informa que el monto fue devuelto. |
 
 Las pruebas automáticas ejercitan estos recorridos con un reloj controlado y también verifican la competencia entre aprobación y vencimiento, los mensajes duplicados y el rollback. La pasarela es simulada y su registro queda en `integraciones_log`.
+
+## Validación manual de HU-06
+
+1. Desde [Crear viaje](http://localhost:3000/admin/viajes/nuevo), registra un minibús y comprueba que se publique con 17 asientos y que no aparezca en [Revisar viajes](http://localhost:3000/gerente/viajes/pendientes).
+2. Registra un megabús. En la confirmación, abre «Consultar estado de aprobación»: debe mostrar `Pendiente` y el viaje no debe aparecer en la cartelera.
+3. Confirma que la bandeja del Gerente muestra ese viaje con sus datos y 45 asientos. Apruébalo y comprueba que aparece en la cartelera. Con otro megabús, selecciona «Rechazar»: el Administrador debe ver `Rechazado`, sin publicación.
+4. Para probar una decisión repetida, abre la bandeja en dos pestañas antes de resolver un viaje. Resuélvelo en una y envía una decisión desde la otra: debe aparecer «El viaje ya fue resuelto» y mantenerse la primera decisión.
+
+Ejecuta `npm test` para las pruebas y `npm run typecheck` para comprobar los tipos. En PowerShell 5.1 usa `npm.cmd`.
 
 ## Pruebas
 

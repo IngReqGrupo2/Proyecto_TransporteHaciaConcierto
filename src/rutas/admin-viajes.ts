@@ -20,6 +20,7 @@ const VALORES_VACIOS: DatosNuevoViaje = {
   asistente: '',
   modeloVehiculo: '',
   patente: '',
+  tipoVehiculo: '',
 };
 
 function extraerValores(cuerpo: Record<string, unknown>): DatosNuevoViaje {
@@ -41,6 +42,7 @@ function extraerValores(cuerpo: Record<string, unknown>): DatosNuevoViaje {
     asistente: valor('asistente'),
     modeloVehiculo: valor('modeloVehiculo'),
     patente: valor('patente'),
+    tipoVehiculo: valor('tipoVehiculo'),
   };
 }
 
@@ -90,5 +92,10 @@ export function crearRutasAdminViajes(db: BaseDeDatos): Router {
     }
   });
 
+  router.get('/admin/viajes/:idViaje', (req, res) => {
+    const viaje = repositorio.buscarPorId(req.params.idViaje);
+    if (!viaje) { res.sendStatus(404); return; }
+    res.render('admin/viaje-creado', { titulo: 'Estado del viaje', viaje });
+  });
   return router;
 }

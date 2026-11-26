@@ -14,6 +14,7 @@ interface VehiculoEjemplo {
   modelo: string;
   patente: string;
   capacidadPasajeros: number;
+  tipo?: 'Minibús' | 'Megabús';
 }
 
 interface ViajeEjemplo {
@@ -49,6 +50,7 @@ const EVENTOS: EventoEjemplo[] = [
     nombre: 'Noche de Jazz',
     fechaEvento: '2027-03-05',
   },
+  { idEvento: -1, nombre: 'Festival con megabús', fechaEvento: '2027-05-10' },
 ];
 
 const VEHICULOS: VehiculoEjemplo[] = [
@@ -62,8 +64,9 @@ const VEHICULOS: VehiculoEjemplo[] = [
     idVehiculo: 2,
     modelo: 'Hyundai H1',
     patente: 'BJYR68',
-    capacidadPasajeros: 10,
+    capacidadPasajeros: 17,
   },
+  { idVehiculo: -1, modelo: 'Megabús de demostración', patente: 'MGBS45', capacidadPasajeros: 45, tipo: 'Megabús' },
 ];
 
 const VIAJES: ViajeEjemplo[] = [
@@ -95,8 +98,8 @@ const VIAJES: ViajeEjemplo[] = [
     horaRegreso: '01:30',
     lugarEncuentro: 'Terminal de Buses',
     costo: 18000,
-    capacidad: 10,
-    cuposDisponibles: 10,
+    capacidad: 17,
+    cuposDisponibles: 17,
     estado: 'Borrador',
     conductorAsignado: 'Luis Pérez',
     asistenteAsignado: 'María Soto',
@@ -119,6 +122,9 @@ const VIAJES: ViajeEjemplo[] = [
   },
 ];
 
+export const RUT_GERENTE_DEMO = '11111111-1';
+const VIAJE_MEGABUS_DEMO = 'DEMO-MEGABUS';
+
 export function cargarDatosEjemplo(db: BaseDeDatos, ahora: () => Date = () => new Date()): void {
   const guardarEvento = db.prepare(`
     INSERT INTO evento (id_evento, nombre, fecha_evento)
@@ -128,12 +134,13 @@ export function cargarDatosEjemplo(db: BaseDeDatos, ahora: () => Date = () => ne
       fecha_evento = excluded.fecha_evento
   `);
   const guardarVehiculo = db.prepare(`
-    INSERT INTO vehiculo (id_vehiculo, modelo, patente, capacidad_pasajeros)
-    VALUES (?, ?, ?, ?)
+    INSERT INTO vehiculo (id_vehiculo, modelo, patente, capacidad_pasajeros, tipo)
+    VALUES (?, ?, ?, ?, ?)
     ON CONFLICT(id_vehiculo) DO UPDATE SET
       modelo = excluded.modelo,
       patente = excluded.patente,
-      capacidad_pasajeros = excluded.capacidad_pasajeros
+      capacidad_pasajeros = excluded.capacidad_pasajeros,
+      tipo = excluded.tipo
   `);
   const guardarViaje = db.prepare(`
     INSERT INTO viaje (
@@ -151,7 +158,6 @@ export function cargarDatosEjemplo(db: BaseDeDatos, ahora: () => Date = () => ne
       hora_regreso = excluded.hora_regreso,
       lugar_encuentro = excluded.lugar_encuentro,
       costo = excluded.costo,
-      capacidad = excluded.capacidad,
       estado = excluded.estado,
       conductor_asignado = excluded.conductor_asignado,
       asistente_asignado = excluded.asistente_asignado
@@ -160,8 +166,11 @@ export function cargarDatosEjemplo(db: BaseDeDatos, ahora: () => Date = () => ne
     INSERT OR IGNORE INTO asiento (id_viaje, numero)
     VALUES (?, ?)
   `);
+  const consultarCapacidad = db.prepare('SELECT capacidad FROM viaje WHERE id_viaje = ?');
 
   db.transaction(() => {
+    db.prepare('INSERT OR IGNORE INTO gerente VALUES (?, ?, ?)')
+      .run(RUT_GERENTE_DEMO, 'gerente@ejemplo.cl', '2026-01-01');
     for (const evento of EVENTOS) {
       guardarEvento.run(evento.idEvento, evento.nombre, evento.fechaEvento);
     }
@@ -171,6 +180,7 @@ export function cargarDatosEjemplo(db: BaseDeDatos, ahora: () => Date = () => ne
         vehiculo.modelo,
         vehiculo.patente,
         vehiculo.capacidadPasajeros,
+        vehiculo.tipo ?? 'Minibús',
       );
     }
     for (const viaje of VIAJES) {
@@ -191,10 +201,16 @@ export function cargarDatosEjemplo(db: BaseDeDatos, ahora: () => Date = () => ne
         viaje.asistenteAsignado,
       );
 
-      for (let numero = 1; numero <= viaje.capacidad; numero += 1) {
+      const { capacidad } = consultarCapacidad.get(viaje.idViaje) as { capacidad: number };
+      for (let numero = 1; numero <= capacidad; numero += 1) {
         guardarAsiento.run(viaje.idViaje, numero);
       }
     }
+    db.prepare(`INSERT INTO viaje (id_viaje, id_evento, id_vehiculo, fecha_viaje, hora_salida, hora_regreso,
+        lugar_encuentro, costo, capacidad, cupos_disponibles, estado, estado_aprobacion, conductor_asignado, asistente_asignado)
+      VALUES (?, -1, -1, '2027-05-10', '17:00', '23:30', 'Terminal de Buses', 18000, 45, 45, 'Borrador', 'Pendiente', 'Luis Pérez', 'María Soto')
+      ON CONFLICT(id_viaje) DO NOTHING`).run(VIAJE_MEGABUS_DEMO);
+    for (let numero = 1; numero <= 45; numero += 1) guardarAsiento.run(VIAJE_MEGABUS_DEMO, numero);
     // HU-02: sembrar de nuevo no repone cupos retenidos ni reservados.
     new ReservaRepositorio(db, ahora).procesarVencimientos();
     const recalcularCupos = db.prepare(`UPDATE viaje SET cupos_disponibles = capacidad - (

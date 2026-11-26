@@ -47,8 +47,9 @@ Flujo y variantes representadas:
 
 ## DSS-03 — Crear viaje y aprobación del gerente
 
-- Casos de uso: [CU-04](./09-casos-de-uso.md#cu-04) (Crear viaje) y [CU-06](./09-casos-de-uso.md#cu-06) (Aprobar o rechazar viaje en megabús)
-- Historias: [HU-03](./04-historias-usuario.md#hu-03-crear-un-viaje-en-el-sistema) (creación del viaje) y [HU-06](./04-historias-usuario.md#hu-06-crear-viaje-con-megabus) (aprobación del gerente)
+- Casos de uso: [CU-04](./09-casos-de-uso.md#cu-04) (Crear viaje), [CU-06](./09-casos-de-uso.md#cu-06) (Aprobar o rechazar viaje con megabús) y [CU-07](./09-casos-de-uso.md#cu-07) (Ver estado de aprobación de un viaje).
+- Historias: [HU-03](./04-historias-usuario.md#hu-03--crear-un-viaje-en-el-sistema) (registro y consulta) y [HU-06](./04-historias-usuario.md#hu-06--aprobar-o-rechazar-un-viaje-con-megabús) (revisión del Gerente).
+- Diagrama de estado: [EST-03](./11-diagramas-estado.md#est-03--ciclo-de-aprobación-de-un-viaje-con-megabús).
 - Sistemas externos que participan: ninguno. El Gerente es un actor humano de la compañía.
 
 ![DSS-03](./diagramas/dss-03.png)
@@ -57,9 +58,8 @@ Archivo fuente: [`./diagramas/dss-03.mmd`](./diagramas/dss-03.mmd)
 
 Flujo y variantes representadas:
 
-- Participantes: Administrador (crea el viaje), Sistema y Gerente (decide sobre los viajes en megabús).
-- `alt` Creación de viaje con minibús: el Administrador crea el viaje con un minibús (17 asientos). El tipo de vehículo no requiere aprobación, por lo que el sistema registra el viaje como aprobado sin intervención del Gerente y lo muestra al Administrador.
-- `alt` Creación de viaje con megabús (aprobado): el Administrador crea el viaje con un megabús (47 asientos). El sistema registra el viaje con estado de aprobación Pendiente, lo informa al Administrador y envía la solicitud al Gerente. El Gerente aprueba el viaje, el sistema muestra al Administrador el viaje aprobado y el viaje pasa a aparecer en la cartelera (HU-06, CA2).
-- `alt` Creación de viaje con megabús (rechazado): el flujo es el mismo hasta la solicitud al Gerente. El Gerente rechaza el viaje, el sistema muestra al Administrador el viaje rechazado y el viaje no se publica en la cartelera (HU-06, CA3).
-- Publicación en la cartelera: mientras el viaje en megabús está pendiente de revisión no aparece en la cartelera (HU-06, CA1). Solo los viajes con estado de aprobación Aprobado se publican.
-- Estado de aprobación visible: en todas las variantes el Administrador puede ver el estado de aprobación del viaje (Pendiente, Aprobado o Rechazado), que se guarda en `Viaje.estadoAprobacion`.
+1. El Administrador confirma el registro con los datos del viaje y el tipo de vehículo. Si los datos son inválidos, el sistema muestra los errores y no registra el viaje.
+2. Si es **minibús**, el sistema lo registra con **17 asientos** y estado **Aprobado**, lo publica directamente y confirma el resultado al Administrador.
+3. Si es **megabús**, el sistema lo registra con **45 asientos** y estado **Pendiente**, sin publicarlo. Cuando el Gerente consulta la bandeja, el sistema muestra únicamente los viajes con megabús pendientes y sus datos.
+4. Si el Gerente **aprueba** un viaje pendiente, el sistema lo marca **Aprobado** y lo publica. Si lo **rechaza**, lo marca **Rechazado** y conserva el registro fuera de la cartelera. En ambos casos, confirma el resultado al Gerente.
+5. El Administrador puede consultar el estado de aprobación de un viaje registrado: **Pendiente**, **Aprobado** o **Rechazado** (`Viaje.estadoAprobacion`).

@@ -1,5 +1,5 @@
 @startuml
-title EST-03 — Ciclo de vida de Solicitud
+title EST-03 — Aprobación de un viaje con megabús
 skinparam backgroundColor white
 skinparam shadowing false
 skinparam state {
@@ -9,21 +9,23 @@ skinparam state {
 }
 hide empty description
 
-state "Pendiente de aprobacion" as Pendiente
-state "Aprobada" as Aprobada
-state "Rechazada" as Rechazada
+state "Pendiente" as Pendiente
+state "Aprobado" as Aprobado
+state "Rechazado" as Rechazado
 
-[*] --> Pendiente : registrarSolicitud\n[datos obligatorios de un viaje para Administrador] /\n regsitra la solicitud con un codigo unico y sus detalles, /\n asociar el viaje y solicitar notificacion por cada viaje solicitado.                            
+[*] --> Pendiente : registrarViaje\n[Administrador; datos válidos; megabús] /\nregistrar viaje con 45 asientos sin publicarlo
 
-Pendiente --> Aprobada : solicitudAprobada\n[solicitud aprobada por el gerente]/\n confirmar la creación del viaje y \n se le notifica al Administrador que el viaje ya esta disponible en cartelera.
+Pendiente --> Aprobado : aprobarViaje [Gerente] /\npublicar el viaje en la cartelera
 
-Pendiente --> Rechazada : solicitudRechazada\n[solicitud rechazada por el cliente] /\n rechaza la creación del viaje y \n se le notifica al Administrador
+Pendiente --> Rechazado : rechazarViaje [Gerente] /\nconservar el viaje sin publicarlo
 
-Aprobada --> [*]
-Rechazada --> [*]
+Aprobado : aprobarViaje o rechazarViaje [Gerente] / informar que el viaje ya fue resuelto
+Rechazado : aprobarViaje o rechazarViaje [Gerente] / informar que el viaje ya fue resuelto
 
-note left of Aprobada
- La aprobación confirma la creación
- del viaje con un megabus de 45 asientos.
+note right of Pendiente
+  Estado: Viaje.estadoAprobacion.
+  El Administrador puede consultarlo.
+  El minibús de 17 asientos se publica
+  al registrarse, sin revisión del Gerente.
 end note
 @enduml

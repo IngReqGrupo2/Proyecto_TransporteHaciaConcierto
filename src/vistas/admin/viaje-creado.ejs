@@ -1,7 +1,11 @@
 <%- include('../parciales/encabezado', { titulo: titulo }) %>
 
-<h1>Viaje creado</h1>
-<p class="mensaje-exito" role="status">El viaje <%= viaje.idViaje %> quedó publicado en la cartelera.</p>
+<h1><%= titulo %></h1>
+<p class="mensaje-exito" role="status">
+  <% if (viaje.estado === 'Publicado') { %>El viaje <%= viaje.idViaje %> quedó publicado en la cartelera.
+  <% } else if (viaje.estadoAprobacion === 'Pendiente') { %>El viaje <%= viaje.idViaje %> está pendiente de aprobación.
+  <% } else { %>El viaje <%= viaje.idViaje %> no está publicado.<% } %>
+</p>
 
 <article class="detalle-viaje">
   <dl>
@@ -27,13 +31,16 @@
     <dd><%= viaje.vehiculoModelo %> · patente <%= viaje.vehiculoPatente %></dd>
     <dt>Estado</dt>
     <dd><%= viaje.estado %></dd>
+    <dt>Estado de aprobación</dt>
+    <dd><%= viaje.estadoAprobacion %></dd>
   </dl>
   <p class="cupos">Cupos disponibles: <%= viaje.cuposDisponibles %> de <%= viaje.capacidad %></p>
 </article>
 
 <p>
   <a class="boton" href="/cartelera">Ver cartelera</a>
-  <a class="volver" href="/cartelera/<%= viaje.idViaje %>">Ver detalle del viaje</a>
+  <a class="volver" href="/admin/viajes/<%= viaje.idViaje %>">Consultar estado de aprobación</a>
+  <% if (viaje.estado === 'Publicado') { %><a class="volver" href="/cartelera/<%= viaje.idViaje %>">Ver detalle del viaje</a><% } %>
 </p>
 
 <%- include('../parciales/pie') %>

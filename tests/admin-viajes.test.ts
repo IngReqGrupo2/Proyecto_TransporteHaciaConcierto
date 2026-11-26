@@ -22,6 +22,7 @@ function datos(overrides: Record<string, string> = {}) {
     asistente: 'Ana Torres',
     modeloVehiculo: 'Hyundai H1',
     patente: 'BJYR68',
+    tipoVehiculo: 'Minibús',
     ...overrides,
   };
 }
@@ -361,13 +362,13 @@ describe('HU-03 · Crear viaje', () => {
     expect(respuesta.text).toContain('Cupos disponibles: 17 de 17');
   });
 
-  it('HU-03 · Vehículo de menor capacidad', async () => {
+  it('HU-03 · Reutiliza el minibús con 17 asientos', async () => {
     const aplicacion = app();
     insertarVehiculo(db, {
       idVehiculo: 2,
       modelo: 'Hyundai H1',
       patente: 'BJYR68',
-      capacidadPasajeros: 10,
+      capacidadPasajeros: 17,
     });
 
     const respuesta = await request(aplicacion)
@@ -376,27 +377,26 @@ describe('HU-03 · Crear viaje', () => {
       .send(datos())
       .expect(201);
 
-    expect(respuesta.text).toContain('Cupos disponibles: 10 de 10');
+    expect(respuesta.text).toContain('Cupos disponibles: 17 de 17');
   });
 
-  it('HU-03 · Vehículo que supera la capacidad máxima', async () => {
+  it('HU-03 · Patente registrada con otro tipo', async () => {
     const aplicacion = app();
-    db.pragma('ignore_check_constraints = ON');
     insertarVehiculo(db, {
       idVehiculo: 2,
       modelo: 'Bus grande',
       patente: 'ZZZZ99',
-      capacidadPasajeros: 18,
+      capacidadPasajeros: 17,
     });
 
     const respuesta = await request(aplicacion)
       .post('/admin/viajes')
       .type('form')
-      .send(datos({ patente: 'ZZZZ99' }))
+      .send(datos({ patente: 'ZZZZ99', tipoVehiculo: 'Megabús' }))
       .expect(400);
 
     expect(respuesta.text).toContain(
-      'La capacidad del vehículo no puede superar los 17 pasajeros.',
+      'La patente ya está registrada con otro tipo de vehículo.',
     );
     expect(contar(db, 'viaje')).toBe(0);
   });

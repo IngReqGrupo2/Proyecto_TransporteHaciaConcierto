@@ -26,6 +26,7 @@ function datos(overrides: Partial<DatosNuevoViaje> = {}): DatosNuevoViaje {
     asistente: 'Ana Torres',
     modeloVehiculo: 'Mercedes-Benz Sprinter',
     patente: 'LKPW42',
+    tipoVehiculo: 'Minibús',
     ...overrides,
   };
 }
@@ -127,30 +128,29 @@ describe('ViajeRepositorio · crearViaje', () => {
       idVehiculo: 2,
       modelo: 'Hyundai H1',
       patente: 'BJYR68',
-      capacidadPasajeros: 10,
+      capacidadPasajeros: 17,
     });
 
     const viaje = new ViajeRepositorio(db).crearViaje(
       datos({ patente: 'BJYR68' }),
     );
 
-    expect(viaje.capacidad).toBe(10);
-    expect(viaje.cuposDisponibles).toBe(10);
+    expect(viaje.capacidad).toBe(17);
+    expect(viaje.cuposDisponibles).toBe(17);
   });
 
-  it('rechaza un vehículo cuya capacidad supera los 17 pasajeros', () => {
+  it('rechaza una patente de minibús si se intenta registrar como megabús', () => {
     db = crearBaseDePrueba();
-    db.pragma('ignore_check_constraints = ON');
     insertarVehiculo(db, {
       idVehiculo: 2,
       modelo: 'Bus grande',
       patente: 'ZZZZ99',
-      capacidadPasajeros: 18,
+      capacidadPasajeros: 17,
     });
 
     expect(() =>
-      new ViajeRepositorio(db).crearViaje(datos({ patente: 'ZZZZ99' })),
-    ).toThrow('La capacidad del vehículo no puede superar los 17 pasajeros.');
+      new ViajeRepositorio(db).crearViaje(datos({ patente: 'ZZZZ99', tipoVehiculo: 'Megabús' })),
+    ).toThrow('La patente ya está registrada con otro tipo de vehículo.');
   });
 
   it('genera el identificador consecutivo a partir de los viajes existentes', () => {

@@ -8,6 +8,18 @@ import { PasarelaPagoSimulada } from '../src/integraciones/pasarela-pago';
 import { pasajeroEjemplo } from './ayudas-pagos';
 
 describe('Datos de ejemplo', () => {
+  it('crea el megabús de 45 asientos y conserva la decisión al volver a sembrar', () => {
+    const db = crearBaseDePrueba();
+    try {
+      cargarDatosEjemplo(db);
+      const repo = new ViajeRepositorio(db);
+      expect(repo.buscarPorId('DEMO-MEGABUS')).toMatchObject({ capacidad: 45, estadoAprobacion: 'Pendiente' });
+      expect(repo.decidirAprobacion('DEMO-MEGABUS', 'Rechazado', '11111111-1')).toBe('resuelto');
+      cargarDatosEjemplo(db);
+      expect(repo.buscarPorId('DEMO-MEGABUS')).toMatchObject({ capacidad: 45, estadoAprobacion: 'Rechazado' });
+      expect(db.prepare("SELECT COUNT(*) AS total FROM asiento WHERE id_viaje = 'DEMO-MEGABUS'").get()).toEqual({ total: 45 });
+    } finally { db.close(); }
+  });
   it('preserva una reserva pagada, su historial de intentos y las retenciones al volver a sembrar', () => {
     const db = crearBaseDePrueba();
     try {
@@ -86,9 +98,9 @@ describe('Datos de ejemplo', () => {
       .prepare('SELECT COUNT(*) AS total FROM vehiculo')
       .get() as { total: number };
 
-    expect(eventosPrimera.total).toBe(3);
-    expect(viajesPrimera.total).toBe(3);
-    expect(vehiculosPrimera.total).toBe(2);
+    expect(eventosPrimera.total).toBe(4);
+    expect(viajesPrimera.total).toBe(4);
+    expect(vehiculosPrimera.total).toBe(3);
     expect(eventosSegunda.total).toBe(eventosPrimera.total);
     expect(viajesSegunda.total).toBe(viajesPrimera.total);
     expect(vehiculosSegunda.total).toBe(vehiculosPrimera.total);

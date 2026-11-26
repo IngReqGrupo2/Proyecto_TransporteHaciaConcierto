@@ -11,6 +11,7 @@ import { PasarelaPagoSimulada, type PasarelaPago } from './integraciones/pasarel
 import { ServicioPagos } from './dominio/pago';
 import { ReservaRepositorio } from './dominio/reserva';
 import { crearRutasAdminViajes } from './rutas/admin-viajes';
+import { crearRutasGerenteViajes } from './rutas/gerente-viajes';
 import { crearRutasCartelera } from './rutas/cartelera';
 import { crearRutasReservas } from './rutas/reservas';
 import { crearRutasPagos } from './rutas/pagos';
@@ -39,6 +40,7 @@ export function crearApp(db: BaseDeDatos, opciones: { ahora?: () => Date; pasare
   app.use(crearRutasReservas(db, new ServicioCorreoSimulado(db), ahora, pagos));
   app.use(crearRutasPagos(db, pagos, ahora));
   app.use(crearRutasAdminViajes(db));
+  app.use(crearRutasGerenteViajes(db));
 
   app.use((_req, res) => {
     res.status(404).render('error', {

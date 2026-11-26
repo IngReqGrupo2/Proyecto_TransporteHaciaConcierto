@@ -105,6 +105,7 @@
 | HU-03 | implementada, validada y archivada | `hu-03-crear-viaje`, `ajuste-hu-03-fechas`, `ajuste-hu-03-validaciones`, `ajuste-hu-03-descripcion` | 2026-11-22 | Crear viaje (CU-04). Patente solo formato actual `AABB11`. Fechas, validaciones y `descripcion` opcional implementadas y aceptadas sin observaciones (`.cin324/validaciones/VAL-HU-03-3.md`). Ficha `.cin324/historias/HU-03.md` |
 | HU-04 | pendiente | — | — | Visualizar pasajeros (CU-05) |
 | HU-05 | implementada, revalidada y archivada | [`hu-05-pagar-reserva`](../openspec/changes/archive/2026-11-22-hu-05-pagar-reserva/) | 2026-11-22 | Pagar reserva (CU-03, DSS-02, EST-01/02). Pasarela simulada, reintentos, devolución por aprobación tardía y pruebas de concurrencia e idempotencia. 140 pruebas correctas y chequeo de tipos aprobado. Revalidada sin observaciones (`.cin324/validaciones/VAL-HU-05-1.md`). Spec `pagos-reservas` incorporada a `openspec/specs/`. |
+| HU-06 | implementada; pendiente de validación del estudiante | [`hu-06-aprobar-viaje-megabus`](../openspec/changes/hu-06-aprobar-viaje-megabus/) | 2026-11-25 | CU-06, DSS-03, EST-03. Capacidad por tipo: 17 o 45; migración conserva los viajes históricos. 149 pruebas y comprobación de tipos correctas. [Ficha confirmada](historias/HU-06.md). |
 
 ## Validaciones
 | Historia | Informe | Estado | Fecha |
@@ -119,6 +120,7 @@
 | HU-05 | `.cin324/historias/HU-05.md` | cinco puntos y ficha completa confirmados | 2026-11-22 |
 | HU-05 | `.cin324/validaciones/VER-HU-05-implementacion.md` | verificación técnica correcta; aceptación confirmada por el estudiante | 2026-11-22 |
 | HU-05 | `.cin324/validaciones/VAL-HU-05-1.md` | revalidada sin observaciones; alineación documental completada el 2026-11-23; queda solo el BPMN TO-BE por decisión del estudiante | 2026-11-22 |
+| HU-06 | `.cin324/historias/HU-06.md` | ficha confirmada por el estudiante | 2026-11-25 |
 
 
 ## Cambios posteriores

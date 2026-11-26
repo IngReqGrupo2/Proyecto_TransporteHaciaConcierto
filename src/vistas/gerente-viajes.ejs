@@ -1,0 +1,20 @@
+<%- include('parciales/encabezado', { titulo }) %>
+<h1><%= titulo %></h1>
+<% if (aviso) { %><p role="status"><%= aviso %></p><% } %>
+<% if (viajes.length === 0) { %><p>No hay viajes pendientes de aprobación.</p><% } %>
+<% for (const viaje of viajes) { %>
+  <article class="detalle-viaje">
+    <h2><%= viaje.eventoNombre %> · <%= viaje.idViaje %></h2>
+    <% if (viaje.descripcion) { %><p><%= viaje.descripcion %></p><% } %>
+    <p>Evento: <%= viaje.eventoFecha %>. Salida: <%= viaje.fechaViaje %>, <%= viaje.horaSalida %>. Regreso: <%= viaje.horaRegreso %>.</p>
+    <p>Encuentro: <%= viaje.lugarEncuentro %> · <%= formatearMonto(viaje.costo) %></p>
+    <p><%= viaje.vehiculoModelo %> · <%= viaje.vehiculoPatente %> · <%= viaje.capacidad %> asientos</p>
+    <p>Conductor: <%= viaje.conductorAsignado %> · Asistente: <%= viaje.asistenteAsignado %></p>
+    <p>Estado de aprobación: <%= viaje.estadoAprobacion %></p>
+    <form method="post" action="/gerente/viajes/<%= viaje.idViaje %>/decision">
+      <button class="boton" type="submit" name="decision" value="Aprobado">Aprobar</button>
+      <button class="boton" type="submit" name="decision" value="Rechazado">Rechazar</button>
+    </form>
+  </article>
+<% } %>
+<%- include('parciales/pie') %>

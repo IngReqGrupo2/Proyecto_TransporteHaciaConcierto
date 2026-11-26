@@ -49,9 +49,19 @@ export function aplicarMigraciones(
     }
 
     const sql = fs.readFileSync(path.join(directorio, archivo), 'utf8');
-    db.transaction(() => {
-      db.exec(sql);
-      registrar.run(archivo, new Date().toISOString());
-    })();
+    const reconstruyeTablasReferenciadas = archivo === '007_aprobacion_viajes.sql';
+    const clavesActivas = db.pragma('foreign_keys', { simple: true });
+    if (reconstruyeTablasReferenciadas) db.pragma('foreign_keys = OFF');
+    try {
+      db.transaction(() => {
+        db.exec(sql);
+        if (reconstruyeTablasReferenciadas && db.prepare('PRAGMA foreign_key_check').all().length > 0) {
+          throw new Error(`Referencias inválidas después de aplicar ${archivo}.`);
+        }
+        registrar.run(archivo, new Date().toISOString());
+      })();
+    } finally {
+      if (reconstruyeTablasReferenciadas && clavesActivas) db.pragma('foreign_keys = ON');
+    }
   }
 }

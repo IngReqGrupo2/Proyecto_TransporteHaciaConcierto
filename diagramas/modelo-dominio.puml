@@ -27,9 +27,9 @@ class Viaje {
   capacidad : Número
   cuposDisponibles : Número
   estado : EstadoViaje
+  estadoAprobacion : EstadoAprobacion
   conductorAsignado : Texto
   asistenteAsignado : Texto
-  estado : Texto
 }
 class Asiento {
   numero : Número
@@ -38,7 +38,7 @@ class Asiento {
 class Vehiculo {
   modelo : Texto
   patente : Texto
-  tipo: Texto
+  tipo : TipoVehiculo
 }
 class Administrador{
   rut : Texto
@@ -76,12 +76,12 @@ class RegistroAsistencia {
 }
 
 class Gerente{
-    rut: Texto
-    correoElectronico: Texto
-    fechaContratacion: Fecha
+  rut : Texto
+  correoElectronico : Texto
+  fechaContratacion : Fecha
 }
 Evento "1" -- "1" Viaje : corresponde a
-Vehiculo "1" --* "0..*" Viaje : se utiliza en
+Vehiculo "1" -- "0..*" Viaje : se utiliza en
 Viaje "1" *-- "1..*" Asiento : contiene
 Viaje "1" -- "0..*" Reserva : recibe
 Reserva "1" *-- "1..*" DetalleReserva : incluye
@@ -90,7 +90,7 @@ Pasajero "1" -- "0..*" DetalleReserva : ocupa
 Reserva "1" -- "0..*" Pago : registra
 DetalleReserva "1" *-- "0..1" RegistroAsistencia : documenta abordaje
 Administrador "1" -- "0..*" Viaje : crea
-Gerente "1" -- "0..*" Viaje : aprueba
+Gerente "0..1" -- "0..*" Viaje : aprueba
 
 note left of Asiento
   El vencimiento es opcional si no existe retención.
@@ -108,5 +108,18 @@ note right of Reserva
   de una reserva pendiente, vence la reserva
   completa y se liberan todos sus asientos.
 end note
-@enduml
 
+note right of Viaje
+  estadoAprobacion: Pendiente de aprobación,
+  Aprobado o Rechazado. Un viaje en minibús
+  queda Aprobado al crearse; uno en megabús
+  queda Pendiente de aprobación hasta que el
+  Gerente lo aprueba o rechaza. Solo los viajes
+  Aprobados aparecen en la cartelera.
+end note
+
+note bottom of Vehiculo
+  tipo: Minibus (17 asientos)
+  o Megabus (47 asientos).
+end note
+@enduml

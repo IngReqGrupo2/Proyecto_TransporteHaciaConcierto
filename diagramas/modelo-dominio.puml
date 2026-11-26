@@ -120,6 +120,6 @@ end note
 
 note bottom of Vehiculo
   tipo: Minibus (17 asientos)
-  o Megabus (47 asientos).
+  o Megabus (45 asientos).
 end note
 @enduml

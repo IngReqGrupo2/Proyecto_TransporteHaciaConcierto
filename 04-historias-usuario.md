@@ -1,48 +1,162 @@
 # Historias de usuario
- 
+
 ## HU-01 — Consultar la cartelera de viajes
 
 Como **pasajero**, quiero **explorar la cartelera y seleccionar un viaje disponible**, para **conocer las alternativas de traslado a conciertos sin tener que consultar por mensaje al administrador**.
 
 **Actividad TO-BE asociada:** Seleccionar viaje.
 
-**Criterios de aceptación:**
-- CA1: Dado que el administrador ha registrado viajes, cuando el cliente ingresa a la cartelera, entonces el sistema muestra los viajes publicados con su información y su descripción cuando la tengan.
-- CA2: Dado que el cliente está en la cartelera, cuando selecciona un viaje, entonces el sistema muestra la información correspondiente al viaje, incluida su descripción cuando la tenga.
-- CA3: Dado que el cliente consulta un viaje, cuando se muestra su información, entonces puede conocer su disponibilidad de cupos sin solicitar una respuesta manual al administrador.
- 
+**Criterios de aceptación (Gherkin):**
+
+```gherkin
+Característica: Consultar cartelera y disponibilidad de viajes
+
+  Escenario: Existen Viajes disponibles
+    Dado que haya viajes disponibles,
+    Cuando el pasajero ingresa a la cartelera,
+    Entonces el sistema muestra los viajes publicados que estén disponibles
+    Y muestra la descripción de cada viaje cuando la tenga.
+
+  Escenario: No hay viajes disponibles
+    Dado que no existan viajes disponibles,
+    Cuando el pasajero ingresa a la cartelera,
+    Entonces el sistema no le mostrará ningún viaje
+    Y en su lugar le mostrará un mensaje señalando que no hay viajes disponibles.
+
+  Escenario: Verificar disponibilidad de un viaje
+    Dado que el pasajero se encuentra explorando la cartelera,
+    Cuando selecciona un viaje específico,
+    Entonces el sistema muestra la información detallada del viaje
+    Y muestra la cantidad de cupos disponibles
+    Y muestra la descripción del viaje cuando la tenga.
+
+  Escenario: La descripción se muestra sin restricción de rol
+    Dado que existe un viaje publicado con descripción,
+    Cuando se consulta la cartelera o el detalle del viaje,
+    Entonces el sistema muestra la descripción del viaje.
+```
+
 ## HU-02 — Registrar reserva y pasajero
 
 Como pasajero, quiero seleccionar uno o varios asientos del mismo viaje e ingresar los datos de un pasajero por asiento, para registrar todos los cupos seleccionados en una única reserva.
 
 **Actividad TO-BE asociada:** Seleccionar cupos e ingresar datos de pasajeros.
 
-**Criterios de aceptación:**
-- CA1: Dado que el cliente ha seleccionado un viaje con cupos disponibles, cuando inicia el proceso de reserva, entonces el sistema debe permitir seleccionar uno o varios asientos disponibles e ingresar los datos requeridos de un pasajero por cada asiento.
-- CA2: Dado que un asiento está disponible, cuando el cliente lo selecciona, entonces el sistema debe retenerlo durante 8 minutos desde ese momento, registrar el vencimiento de la retención en el asiento e impedir que otro cliente lo seleccione durante ese plazo.
-- CA3: Dado que todos los datos de los pasajeros son válidos y todas las retenciones siguen vigentes para el cliente que confirma, cuando este confirma la operación, entonces el sistema debe registrar una única reserva en estado pendiente de pago, generar un único código y asociar a ella el viaje y todos los asientos seleccionados, identificando al pasajero correspondiente a cada asiento y sin reiniciar sus plazos de retención.
-- CA4: Dado que la reserva fue registrada correctamente, cuando el cliente la consulta mediante su código, entonces el sistema debe mostrar el viaje, todos los asientos incluidos, el pasajero correspondiente a cada asiento, el estado de la reserva y si esta incluye ida y vuelta; en ese último caso, también debe mostrar el lugar de regreso ingresado.
-- CA5: Dado que se generó la reserva pendiente, cuando el sistema guarda el registro, entonces se conecta con un servicio de correos externo para enviar automáticamente a cada pasajero una notificación indicando que su cupo fue registrado exitosamente.
-- CA6: Dado que alguno de los asientos seleccionados ya no está disponible para el cliente o su retención venció antes de confirmar, cuando el cliente intenta registrar la reserva, entonces el sistema no debe crear la reserva ni registrar parcialmente los asientos y debe informar que es necesario revisar la selección.
-- CA7: Dado que existe una reserva pendiente de pago con varios asientos, cuando vence la retención de cualquiera de ellos sin que se haya aprobado el pago, entonces el sistema debe marcar la reserva completa como vencida y liberar todos sus asientos.
-- CA8: Dado que el cliente está completando su reserva, cuando indica que esta incluye ida y vuelta, entonces el sistema debe solicitar que ingrese el lugar de regreso y guardarlo como parte de la reserva.
-- CA9: Dado que la reserva es de ida y vuelta, cuando el cliente intenta confirmarla sin ingresar el lugar de regreso, entonces el sistema debe impedir el registro e indicar que ese campo es obligatorio.
-- CA10: Dado que la reserva no incluye ida y vuelta, cuando el cliente confirma la operación con los demás datos válidos y las retenciones vigentes, entonces el sistema debe permitir registrar la reserva sin exigir un lugar de regreso.
+**Criterios de aceptación (Gherkin):**
+
+```gherkin
+Característica: Registrar una reserva y retener sus asientos
+
+  Escenario: Retención de un asiento al seleccionarlo
+    Dado que un asiento del viaje está disponible,
+    Cuando el cliente lo selecciona,
+    Entonces el sistema lo retiene para ese cliente durante 8 minutos desde la selección y registra su vencimiento en el asiento
+    Y bloquea su selección por otros clientes mientras la retención esté vigente.
+
+  Escenario: Confirmación de una reserva con uno o varios asientos
+    Dado que el cliente seleccionó uno o varios asientos del mismo viaje con retenciones vigentes y completó los datos obligatorios, incluyendo un pasajero por asiento,
+    Cuando confirma la operación,
+    Entonces el sistema crea una única reserva pendiente de pago con un solo código, asociada al viaje y a todos los asientos con sus respectivos pasajeros, sin reiniciar las retenciones
+    Y solicita al servicio de correos externo una notificación de registro exitoso para cada pasajero.
+
+  Escenario: Selección de cupo no disponible
+    Dado que los cupos de un viaje se encuentran bloqueados temporalmente o agotados,
+    Cuando un pasajero intente seleccionarlos,
+    Entonces el sistema impedirá el proceso
+    Y le mostrará un mensaje señalando que no hay cupos disponibles.
+
+  Escenario: Consultar una reserva registrada
+    Dado que existe una reserva pendiente de pago con uno o varios asientos,
+    Cuando el cliente la consulta mediante su código,
+    Entonces el sistema muestra el viaje, los asientos con sus respectivos pasajeros, el estado y si la reserva incluye ida y vuelta
+    Y muestra el lugar de regreso ingresado cuando la reserva es de ida y vuelta.
+
+  Escenario: Rechazo de la operación por pérdida de disponibilidad
+    Dado que el cliente seleccionó varios asientos y alguno dejó de estar disponible para él o su retención venció,
+    Cuando intenta confirmar la operación,
+    Entonces el sistema impide crear la reserva completa, sin registrar parcialmente los asientos
+    Y solicita al cliente revisar su selección.
+
+  Escenario: Vencimiento de una reserva con varios asientos
+    Dado que existe una reserva pendiente de pago con varios asientos,
+    Cuando vence la retención de cualquiera de ellos sin haberse aprobado el pago,
+    Entonces el sistema marca toda la reserva como vencida y libera todos sus asientos.
+
+  Escenario: Registro del lugar de regreso
+    Dado que el cliente indica que su reserva es de ida y vuelta,
+    Cuando completa el lugar de regreso y confirma con los demás datos válidos y las retenciones vigentes,
+    Entonces el sistema registra la reserva incluyendo el lugar de regreso ingresado.
+
+  Escenario: Falta el lugar de regreso en una reserva de ida y vuelta
+    Dado que el cliente indicó que su reserva es de ida y vuelta y completó los demás datos válidos con retenciones vigentes,
+    Cuando intenta confirmarla sin ingresar el lugar de regreso,
+    Entonces el sistema impide el registro e indica que el lugar de regreso es obligatorio.
+
+  Escenario: Reserva sin ida y vuelta
+    Dado que el cliente indica que su reserva no incluye ida y vuelta,
+    Cuando confirma con los demás datos válidos y las retenciones vigentes,
+    Entonces el sistema registra la reserva sin exigir un lugar de regreso.
+```
 
 ## HU-03 — Crear un viaje en el sistema
 
-Como **administrador**, quiero **crear y registrar un viaje en el sistema con sus datos correspondientes**, para **publicarlo en la cartelera y gestionar los viajes sin depender de afiches y registros manuales**.
+Como **administrador**, quiero **crear y registrar un viaje en el sistema indicando el tipo de vehículo y sus datos correspondientes**, para **publicarlo en la cartelera cuando corresponda y gestionar los viajes sin depender de afiches y registros manuales**.
 
 **Actividad TO-BE asociada:** Publicar viaje con su costo, hora de salida y lugar de encuentro.
 
-**Criterios de aceptación:**
-- CA1: Dado que el administrador desea crear un viaje, cuando accede al registro de viajes, entonces el sistema permite ingresar el nombre del evento, fecha, hora de salida y regreso, conductor, asistente, modelo del vehículo y patente.
-- CA2: Dado que el administrador completa los datos requeridos del viaje, cuando confirma su creación, entonces el sistema registra el viaje.
-- CA3: Dado que el viaje fue registrado correctamente, cuando se publica, entonces el sistema lo incorpora a la cartelera para que pueda ser consultado por los clientes.
-- CA4: Dado que el administrador ingresa la fecha del evento o del viaje, cuando confirma la creación, entonces el sistema rechaza la fecha si no existe en el calendario, si es anterior a la fecha actual o si es posterior al 31 de diciembre del año actual más 100 años.
-- CA5: Dado que el administrador ingresa el nombre del conductor o del asistente, cuando confirma la creación, entonces el sistema rechaza el nombre si no contiene al menos una letra.
-- CA6: Dado que el administrador ingresa la fecha del viaje, cuando confirma la creación, entonces el sistema rechaza la fecha si es posterior a la fecha del evento; se permite el mismo día.
-- CA7: Dado que el sistema detecta datos inválidos, cuando muestra los errores de creación, entonces indica el mensaje junto al campo afectado y lo marca como inválido, además del mensaje general.
+**Criterios de aceptación (Gherkin):**
+
+```gherkin
+Característica: Crear y publicar viajes
+
+  Escenario: Creación exitosa de un viaje con minibús
+    Dado que el administrador completa correctamente todos los campos requeridos e indica que el vehículo es un minibús,
+    Cuando confirma su creación,
+    Entonces el sistema registra el viaje con 17 asientos
+    Y lo deja con estado de aprobación "Aprobado"
+    Y lo publica en la cartelera.
+
+  Escenario: Creación exitosa de un viaje con megabús
+    Dado que el administrador completa correctamente todos los campos requeridos e indica que el vehículo es un megabús,
+    Cuando confirma su creación,
+    Entonces el sistema registra el viaje con 45 asientos
+    Y lo deja con estado de aprobación "Pendiente"
+    Y no lo publica en la cartelera.
+
+  Escenario: Consulta del estado de aprobación de un viaje con megabús
+    Dado que existe un viaje con megabús registrado,
+    Cuando el administrador consulta el viaje,
+    Entonces el sistema muestra su estado de aprobación
+    Y dicho estado puede ser "Pendiente", "Aprobado" o "Rechazado".
+
+  Escenario: Faltan campos para crear el viaje
+    Dado que el administrador no ingresa alguno de los campos requeridos en la creación de viajes,
+    Cuando intente publicarlo,
+    Entonces el sistema lo impedirá
+    Y cada campo faltante se marcará como inválido
+    Y el viaje no se creará.
+
+  Escenario: Fecha en formato inválido
+    Dado que el administrador ingresa una fecha del evento o del viaje que no existe en el calendario, es anterior a hoy o supera el límite permitido,
+    Cuando intente publicar el viaje,
+    Entonces el sistema lo impedirá
+    Y mostrará el mensaje de fecha inválida correspondiente al campo
+    Y el viaje no se creará.
+
+  Escenario: Nombre en formato inválido
+    Dado que el administrador ingresa un nombre de conductor o de asistente que no contiene al menos una letra,
+    Cuando intente publicar el viaje,
+    Entonces el sistema lo impedirá
+    Y mostrará el mensaje correspondiente al campo
+    Y el viaje no se creará.
+
+  Escenario: Fecha del viaje posterior a la fecha del evento
+    Dado que el administrador ingresa una fecha del viaje posterior a la fecha del evento,
+    Cuando intente publicar el viaje,
+    Entonces el sistema lo impedirá
+    Y mostrará "La fecha del viaje no puede ser posterior a la fecha del evento." junto al campo de la fecha del viaje
+    Y el viaje no se creará.
+```
 
 ## HU-04 — Visualizar pasajeros
 
@@ -50,10 +164,33 @@ Como **administrador**, quiero **visualizar la lista de pasajeros confirmados de
 
 **Actividad TO-BE asociada:** Generar lista digital de pasajeros y pasar lista.
 
-**Criterios de aceptación:**
-- CA1: Dado que es el día del viaje, cuando el administrador accede al viaje y solicita la lista, entonces el sistema muestra los pasajeros con reserva pagada asociados a ese viaje.
-- CA2: Dado que el administrador tiene la lista, cuando registra quiénes asistieron, entonces el sistema guarda la asistencia de cada pasajero y deja un registro de las ausencias.
-- CA3: Dado que el viaje está en el trayecto de regreso desde el concierto, cuando el administrador accede a la lista, entonces puede confirmar en el sistema que todos los pasajeros están a bordo.
+**Criterios de aceptación (Gherkin):**
+
+```gherkin
+Característica: Consultar nomina de pasajeros
+
+  Escenario: Viaje con pasajeros confirmados
+    Dado que un viaje tiene al menos una reserva confirmada,
+    Cuando el administrador accede a la información del viaje
+    Y solicita una lista de pasajeros registrados en ese viaje,
+    Entonces el sistema muestra los pasajeros con reservas pagadas asociados a ese viaje.
+
+  Escenario: Viaje sin pasajeros confirmados
+    Dado que un viaje no tiene reservas confirmadas,
+    Cuando el administrador solicite una lista de pasajeros de ese viaje,
+    Entonces no se mostrarán pasajeros que no hayan realizado el pago
+    Y se le mostrará un mensaje señalando que no hay pasajeros confirmados en ese viaje.
+
+  Escenario: Registrar la asistencia de un pasajero
+    Dado que el administrador se encuentra visualizando la lista digital de pasajeros el día del viaje,
+    Cuando marca a un pasajero como presente,
+    Entonces el sistema guarda el registro de asistencia correspondiente a ese pasajero.
+
+  Escenario: Confirmar abordaje en el trayecto de regreso
+    Dado que el viaje está en el trayecto de regreso desde el concierto,
+    Cuando el administrador accede a la lista digital de pasajeros,
+    Entonces puede confirmar en el sistema que todos los pasajeros están a bordo.
+```
 
 ## HU-05 — Pagar reserva
 
@@ -61,22 +198,116 @@ Como **pasajero**, quiero **pagar mi reserva de forma online utilizando distinto
 
 **Actividad TO-BE asociada:** Pagar viaje.
 
-**Criterios de aceptación:**
-- CA1: Dado que el cliente ha completado sus datos de reserva, cuando confirma el registro, entonces el sistema lo redirige de forma segura a una pasarela de pago externa.
-- CA2: Dado que la reserva está pendiente de pago y todas sus retenciones siguen vigentes, cuando la pasarela aprueba el pago, entonces el sistema actualiza la reserva a "Pagada" y confirma todos sus asientos sin descontar cupos nuevamente.
-- CA3: Dado que la reserva está pendiente de pago, cuando la pasarela rechaza la transacción o el usuario cancela la operación, entonces el sistema informa que el pago no fue completado y conserva los vencimientos originales de los asientos, sin reiniciar sus plazos.
-- CA4: Dado que existe una reserva pendiente de pago, cuando vence la retención de cualquiera de sus asientos sin pago aprobado, entonces el sistema marca toda la reserva como "Vencida", libera todos sus asientos y restituye sus cupos.
-- CA5: Dado que una reserva ha vencido, cuando el sistema recibe una aprobación de pago para ella, entonces registra el pago aprobado y solicita automáticamente a la pasarela la devolución del monto completo, manteniendo la reserva vencida y sin volver a ocupar sus asientos.
-- CA6: Dado que se solicitó la devolución de un pago aprobado para una reserva vencida, cuando la pasarela confirma la devolución completa, entonces el sistema actualiza el pago a "Devuelto" e informa al pasajero que su reserva venció y el monto fue devuelto.
+**Criterios de aceptación (Gherkin):**
 
-## HU-06 -- Crear viaje con Megabus
+```gherkin
+Característica: Procesar pagos y actualizar reservas
 
-Como **Gerente** quiero **recibir solicitudes de viajes que usen megabus** para **decidir si aprobarlos o no.**
+  Escenario: Redirección a pasarela
+    Dado que el cliente ha completado los datos de una reserva con uno o varios asientos del mismo viaje y todas sus retenciones siguen vigentes,
+    Cuando confirma el registro,
+    Entonces el sistema registra una única reserva pendiente de pago e inicia un intento de pago por su monto total
+    Y lo redirige de forma segura a una pasarela de pago externa que permite tarjeta de crédito o débito.
+
+  Escenario: Monto total de la reserva
+    Dado que una reserva incluye uno o varios asientos del mismo viaje,
+    Cuando el sistema inicia el pago,
+    Entonces el monto es el costo del viaje multiplicado por la cantidad de asientos incluidos
+    Y no agrega un recargo por la modalidad de ida y vuelta.
+
+  Escenario: Pago exitoso
+    Dado que la reserva está pendiente de pago y todas sus retenciones siguen vigentes,
+    Cuando la pasarela aprueba el pago,
+    Entonces el sistema registra el pago como "Aprobado" y actualiza la reserva a "Pagada"
+    Y confirma todos sus asientos sin volver a descontar cupos
+    Y informa al pasajero que el pago confirmó la reserva.
+
+  Escenario: Pago fallido o cancelado
+    Dado que el cliente se encuentra en la pasarela y todas las retenciones de su reserva siguen vigentes,
+    Cuando la pasarela rechaza la transacción o el usuario cancela la operación,
+    Entonces el sistema registra el pago como "Rechazado" o "Cancelado", según corresponda
+    Y muestra "El pago no fue completado"
+    Y conserva la reserva pendiente y los vencimientos originales de todos sus asientos, sin reiniciar sus plazos.
+
+  Escenario: Reintento dentro del plazo original
+    Dado que un intento fue rechazado o cancelado y la reserva sigue pendiente con todas sus retenciones vigentes,
+    Cuando el pasajero reintenta el pago,
+    Entonces el sistema inicia otro intento por el monto total de la reserva
+    Y conserva el historial de intentos y los vencimientos originales de los asientos.
+
+  Escenario: Vencimiento de una reserva pendiente
+    Dado que existe una reserva pendiente de pago con uno o varios asientos,
+    Cuando vence la retención de cualquiera de ellos sin pago aprobado,
+    Entonces el sistema marca toda la reserva como "Vencida"
+    Y libera todos sus asientos y restituye sus cupos.
+
+  Escenario: Impedir un nuevo intento de pago de una reserva vencida
+    Dado que una reserva venció o alguna de sus retenciones alcanzó su vencimiento mientras seguía pendiente,
+    Cuando el pasajero intenta iniciar otro pago,
+    Entonces el sistema mantiene o aplica el vencimiento de toda la reserva
+    Y impide iniciar el nuevo intento e informa que la reserva está vencida.
+
+  Escenario: Pago aprobado después del vencimiento
+    Dado que la reserva venció o alguna de sus retenciones venció mientras seguía pendiente,
+    Cuando el sistema recibe una aprobación de pago para ella,
+    Entonces registra el pago como "Aprobado" y mantiene o aplica el vencimiento completo de la reserva
+    Y solicita automáticamente a la pasarela la devolución del monto completo, dejando registrada la solicitud
+    Y informa al pasajero que la reserva venció y la devolución fue solicitada
+    Y no reactiva la reserva ni vuelve a ocupar sus asientos.
+
+  Escenario: Devolución solicitada aún no confirmada
+    Dado que se solicitó la devolución de un pago aprobado para una reserva vencida,
+    Cuando la pasarela aún no ha confirmado la devolución completa,
+    Entonces el pago permanece "Aprobado" con la solicitud registrada
+    Y el sistema no informa que el monto ya fue devuelto.
+
+  Escenario: Devolución completa confirmada
+    Dado que se solicitó la devolución de un pago aprobado para una reserva vencida,
+    Cuando la pasarela confirma la devolución completa,
+    Entonces el sistema actualiza el pago a "Devuelto"
+    Y mantiene la reserva "Vencida" y sus asientos liberados
+    Y informa al pasajero que su reserva venció y el monto fue devuelto.
+```
+
+## HU-06 — Aprobar o rechazar un viaje con megabús
+
+Como **gerente**, quiero **revisar las solicitudes de viajes que usan megabús y aprobarlas o rechazarlas**, para **autorizar su publicación en la cartelera y controlar el uso de la capacidad de 45 asientos**.
 
 **Actividad TO-BE asociada:** Publicar viaje con su costo, hora de salida y lugar de encuentro.
 
-**Criterios de Aceptación:**
+**Criterios de aceptación (Gherkin):**
 
-- CA1: Dado que un Administrador cree un viaje con un megabus, cuando haya confirmado el viaje, entonces el viaje debe ser enviado al gerente para su revisión previo a ser confirmado para la cartelera.
-- CA2: Dado que el Gerente haya recibido una solicitud del viaje con megabus, cuando la marque como aprobada, entonces el viaje aparecerá en la cartelera.
-- CA3: Dado que el Gerente haya recibido una solicitud del viaje con megabus, cuando la marque como rechazada, entonces el viaje será descartado y no será subido a la cartelera.
+```gherkin
+Característica: Aprobar o rechazar viajes con megabús
+
+  Escenario: Solicitudes pendientes visibles para el gerente
+    Dado que el administrador registró un viaje con megabús,
+    Cuando el gerente accede a las solicitudes pendientes,
+    Entonces el sistema muestra el viaje con sus datos
+    Y lo muestra con estado de aprobación "Pendiente".
+
+  Escenario: Los minibuses no requieren aprobación
+    Dado que existe un viaje con minibús y un viaje con megabús pendiente,
+    Cuando el gerente accede a las solicitudes pendientes,
+    Entonces el sistema muestra únicamente el viaje con megabús
+    Y no incluye el viaje con minibús.
+
+  Escenario: Aprobación de un viaje con megabús
+    Dado que el gerente recibió una solicitud de viaje con megabús pendiente,
+    Cuando la marca como aprobada,
+    Entonces el sistema cambia el estado de aprobación del viaje a "Aprobado"
+    Y lo incorpora a la cartelera.
+
+  Escenario: Rechazo de un viaje con megabús
+    Dado que el gerente recibió una solicitud de viaje con megabús pendiente,
+    Cuando la marca como rechazada,
+    Entonces el sistema cambia el estado de aprobación del viaje a "Rechazado"
+    Y conserva el registro del viaje
+    Y no lo incorpora a la cartelera.
+
+  Escenario: Nueva decisión sobre un viaje ya resuelto
+    Dado que un viaje con megabús ya tiene estado de aprobación "Aprobado" o "Rechazado",
+    Cuando el gerente intenta aprobarlo o rechazarlo nuevamente,
+    Entonces el sistema impide la nueva decisión
+    Y le informa que el viaje ya fue resuelto.
+```

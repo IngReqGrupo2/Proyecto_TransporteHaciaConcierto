@@ -92,16 +92,30 @@ Característica: Registrar una reserva y retener sus asientos
    
 ## HU-03 — Crear un viaje en el sistema
 
-Como administrador, quiero crear un viaje en el sistema con sus datos correspondientes, para publicarlo en la cartelera.
+Como administrador, quiero crear un viaje en el sistema indicando el tipo de vehículo y sus datos correspondientes, para publicarlo en la cartelera cuando corresponda.
 
 ```gherkin
 Característica: Crear y publicar viajes
 
-  Escenario: Creación exitosa de un viaje
-    Dado que el administrador completa correctamente todos los campos requeridos en la creación de viajes,
+  Escenario: Creación exitosa de un viaje con minibús
+    Dado que el administrador completa correctamente todos los campos requeridos e indica que el vehículo es un minibús,
     Cuando confirma su creación,
-    Entonces el viaje se publica
-    Y se visualizará en la cartelera.
+    Entonces el sistema registra el viaje con 17 asientos
+    Y lo deja con estado de aprobación "Aprobado"
+    Y lo publica en la cartelera.
+
+  Escenario: Creación exitosa de un viaje con megabús
+    Dado que el administrador completa correctamente todos los campos requeridos e indica que el vehículo es un megabús,
+    Cuando confirma su creación,
+    Entonces el sistema registra el viaje con 45 asientos
+    Y lo deja con estado de aprobación "Pendiente"
+    Y no lo publica en la cartelera.
+
+  Escenario: Consulta del estado de aprobación de un viaje con megabús
+    Dado que existe un viaje con megabús registrado,
+    Cuando el administrador consulta el viaje,
+    Entonces el sistema muestra su estado de aprobación
+    Y dicho estado puede ser "Pendiente", "Aprobado" o "Rechazado".
 
   Escenario: Faltan campos para crear el viaje
     Dado que el administrador no ingresa alguno de los campos requeridos en la creación de viajes,
@@ -110,30 +124,19 @@ Característica: Crear y publicar viajes
     Y cada campo faltante se marcará como inválido
     Y el viaje no se creará.
 
-  Esquema del escenario: Fechas inválidas en la creación del viaje
-    Dado que el administrador ingresa como fecha del evento o del viaje <fecha>,
+  Escenario: Fecha en formato inválido
+    Dado que el administrador ingresa una fecha del evento o del viaje que no existe en el calendario, es anterior a hoy o supera el límite permitido,
     Cuando intente publicar el viaje,
     Entonces el sistema lo impedirá
-    Y mostrará "La fecha del evento debe ser una fecha real del calendario, no anterior a hoy y no posterior al 31 de diciembre del año actual más 100 años." o "La fecha del viaje debe ser una fecha real del calendario, no anterior a hoy y no posterior al 31 de diciembre del año actual más 100 años." junto al campo correspondiente
+    Y mostrará el mensaje de fecha inválida correspondiente al campo
     Y el viaje no se creará.
 
-    Ejemplos:
-      | fecha                                  |
-      | 29 de febrero de un año no bisiesto    |
-      | una fecha anterior a hoy               |
-      | 1 de enero del año actual más 101 años |
-
-  Esquema del escenario: Nombre del conductor o del asistente inválido
-    Dado que el administrador ingresa como nombre del <campo> el valor "<valor>",
+  Escenario: Nombre en formato inválido
+    Dado que el administrador ingresa un nombre de conductor o de asistente que no contiene al menos una letra,
     Cuando intente publicar el viaje,
     Entonces el sistema lo impedirá
-    Y mostrará "<mensaje>" junto al campo <campo>
+    Y mostrará el mensaje correspondiente al campo
     Y el viaje no se creará.
-
-    Ejemplos:
-      | campo     | valor | mensaje                                                   |
-      | conductor | 12345 | El nombre del conductor debe contener al menos una letra. |
-      | asistente | 98765 | El nombre del asistente debe contener al menos una letra. |
 
   Escenario: Fecha del viaje posterior a la fecha del evento
     Dado que el administrador ingresa una fecha del viaje posterior a la fecha del evento,
@@ -246,24 +249,40 @@ Característica: Procesar pagos y actualizar reservas
     Y informa al pasajero que su reserva venció y el monto fue devuelto.
 ```
  
-## HU-06 — Creación de viaje con Megabus.
-Como Gerente quiero recibir solicitudes de viajes que usen megabus para decidir si aprobarlos o no.
+## HU-06 — Aprobar o rechazar un viaje con megabús
+Como gerente, quiero revisar las solicitudes de viajes que usan megabús y aprobarlas o rechazarlas, para autorizar su publicación en la cartelera y controlar el uso de la capacidad de 45 asientos.
 
 ```gherkin
-Característica: Creación de viaje con megabus.
+Característica: Aprobar o rechazar viajes con megabús
 
-  Escenario: Se solicita un viaje con megabus
-Dado que un Administrador cree un viaje con un megabus
-Cuando haya confirmado el viaje Entonces el viaje debe ser enviado al gerente para su revisión previo a ser confirmado para la cartelera.
+  Escenario: Solicitudes pendientes visibles para el gerente
+    Dado que el administrador registró un viaje con megabús,
+    Cuando el gerente accede a las solicitudes pendientes,
+    Entonces el sistema muestra el viaje con sus datos
+    Y lo muestra con estado de aprobación "Pendiente".
 
-Escenario: Se necesita confirmar un viaje con megabus.
-Dado que el Gerente haya recibido una solicitud del viaje con megabus
-Cuando la marque como aprobada
-Entonces el viaje aparecerá en la cartelera. 
+  Escenario: Los minibuses no requieren aprobación
+    Dado que existe un viaje con minibús y un viaje con megabús pendiente,
+    Cuando el gerente accede a las solicitudes pendientes,
+    Entonces el sistema muestra únicamente el viaje con megabús
+    Y no incluye el viaje con minibús.
 
-Escenario: Se necesita confirmar un viaje con megabus.
-Dado que el Gerente haya recibido una solicitud del viaje con megabus
-Cuando la marque como rechazada
-Entonces el viaje será descartado,
-Y no será subido a la cartelera.
+  Escenario: Aprobación de un viaje con megabús
+    Dado que el gerente recibió una solicitud de viaje con megabús pendiente,
+    Cuando la marca como aprobada,
+    Entonces el sistema cambia el estado de aprobación del viaje a "Aprobado"
+    Y lo incorpora a la cartelera.
+
+  Escenario: Rechazo de un viaje con megabús
+    Dado que el gerente recibió una solicitud de viaje con megabús pendiente,
+    Cuando la marca como rechazada,
+    Entonces el sistema cambia el estado de aprobación del viaje a "Rechazado"
+    Y conserva el registro del viaje
+    Y no lo incorpora a la cartelera.
+
+  Escenario: Nueva decisión sobre un viaje ya resuelto
+    Dado que un viaje con megabús ya tiene estado de aprobación "Aprobado" o "Rechazado",
+    Cuando el gerente intenta aprobarlo o rechazarlo nuevamente,
+    Entonces el sistema impide la nueva decisión
+    Y le informa que el viaje ya fue resuelto.
 ```
